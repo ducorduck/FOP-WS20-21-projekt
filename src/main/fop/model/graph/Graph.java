@@ -35,6 +35,9 @@ public class Graph<V> {
 	 */
 	public void addVertex(V v) {
 		// TODO Aufgabe 4.1.1
+		//create an empty adjacent list
+		Set<V> set = new HashSet<>();
+		G.putIfAbsent(v, set);
 	}
 	
 	/**
@@ -46,7 +49,25 @@ public class Graph<V> {
 	 */
 	public boolean addEdge(V x, V y) {
 		// TODO Aufgabe 4.1.1
-		return false;
+		//check if the graph already has x and y and add any missing node
+		if (!G.containsKey(x)) 
+            addVertex(x);        
+		
+		if (!G.containsKey(y)) 
+            addVertex(y);        
+		//check if the edge already exists
+		if(G.get(x).contains(y) && G.get(y).contains(x))
+			return false;
+		
+		//add y to x's adjacent list
+		Set<V> setX = G.get(x);
+		setX.add(y);
+		G.put(x, setX);
+		//add x to y's adjacent list
+		Set<V> setY = G.get(y);
+		setY.add(x);
+	    G.put(y, setY);
+		return true;
 	}
 	
 	
@@ -60,7 +81,23 @@ public class Graph<V> {
 	 */
 	public boolean removeVertex(V v) {
 		// TODO Aufgabe 4.1.1
-		return false;
+		//check if the graph has v
+		if(!G.containsKey(v)) {
+			return false;
+		}
+		//remove the node from the graph
+		G.remove(v);
+		//remove the node from all other nodes' adjacent list
+		for(V vertex: G.keySet()) {
+            for (int i = 0; i <G.get(vertex).size(); i++) {
+                if(G.get(vertex).contains(v)) {
+                	Set<V> set = G.get(vertex);
+                	set.remove(v);
+                    G.put(vertex,set);
+                }
+            }
+		}
+		return true;
 	}
 	
 	/**
@@ -72,7 +109,24 @@ public class Graph<V> {
 	 */
 	public boolean removeEdge(V x, V y) {
 		// TODO Aufgabe 4.1.1
-		return false;
+		//check if the path already exists
+		if(!G.get(x).contains(y) || !G.get(y).contains(x)) {
+			return false;
+		}
+		//check if the graph has x and y
+		if(!G.containsKey(x) || !G.containsKey(y)) {
+			return false;
+		}
+		//remove y from  x's adjacent list
+		Set<V> setX = G.get(x);
+		setX.remove(y);
+		G.put(x, setX);
+		
+		//remove x from  y's adjacent list
+		Set<V> setY = G.get(y);
+		setY.remove(x);
+		G.put(y, setY);
+		return true;
 	}
 	
 	
@@ -105,6 +159,50 @@ public class Graph<V> {
 	 */
 	public boolean hasPath(V x, V y) {
 		// TODO Aufgabe 4.1.2
+		//check if the graph has x and y
+		if (this.hasVertex(x) && this.hasVertex(y)) {
+			//check if x and y are the same
+			if (x.equals(y)) return true;
+			//set of already visited nodes
+			Set<V> visited = new HashSet<V>();
+			//first visit x
+			visited.add(x);
+			//set of not yet visited nodes
+			Set<V> unvisited = new HashSet<V>();
+			//first add the adjacent list of x to the list
+			for(V item : G.get(x)) {
+				unvisited.add(item);
+			}
+			//stop if we've visited all possible nodes from x
+			while(unvisited.size() != 0 ) {
+				V tempItem = null;
+				//get the item to be assessed
+				for(V item : unvisited) {
+					if(item.equals(y))return true;
+					tempItem = item;
+					break;
+				}
+				
+				if(tempItem != null) {
+					//get the adjacent list of the item
+					Set<V> tempSet = G.get(tempItem); 
+					//add all the items that are not already visited or are not already in the set of unvisited nodes in the unvisited nodes
+					for(V item : tempSet) {
+						if(item.equals(y))return true;
+						if(!visited.contains(item) && !unvisited.contains(item)) {
+							unvisited.add(item);
+						}
+					}
+					//mark the item as visited
+					unvisited.remove(tempItem);
+					visited.add(tempItem);
+				}
+			}
+			//check if we've already visited the wanted node
+			for(V item : visited) {
+				if(item.equals(y)) return true;
+			}
+		}
 		return false;
 	}
 	
