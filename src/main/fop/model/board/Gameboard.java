@@ -1,6 +1,7 @@
 package fop.model.board;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -18,7 +19,7 @@ import fop.model.graph.Graph;
  */
 public class Gameboard {
 	
-	protected final Map<Position, PathCard> board = new HashMap<>();
+	protected final Map<Position,PathCard> board = new HashMap<>();
 	protected final Graph<BoardAnchor> graph = new Graph<>();
 	
 	/**
@@ -56,7 +57,67 @@ public class Gameboard {
 	 */
 	public void placeCard(int x, int y, PathCard card) {
 		// TODO Aufgabe 4.1.4
-		
+		Position pos = Position.of(x, y);
+		//check goal card
+		if(card.isGoalCard()) {
+			board.put(pos, card);
+			GoalCard goal = (GoalCard) card;
+			if(!goal.isCovered()) {
+				Set<CardAnchor> goalAnchors = new HashSet<>();
+				for(CardAnchor anchor : card.getGraph().vertices()) {
+					goalAnchors.add(anchor);
+				}
+				for(CardAnchor anchor : goalAnchors) {
+					for(CardAnchor anchor2 : goalAnchors) {
+						if(anchor2.equals(anchor)) continue;
+						if(card.getGraph().hasEdge(anchor, anchor2)) {
+							graph.addEdge(BoardAnchor.of(pos, anchor), BoardAnchor.of(pos, anchor2));
+						}
+					}
+				}
+			}
+		}
+		//add all the card's vertices to the board's graph
+		Set<CardAnchor> cardAnchors = new HashSet<>();
+		for(CardAnchor anchor : card.getGraph().vertices()) {
+			cardAnchors.add(anchor);
+		}
+		//check start card
+		if(card.isStartCard()) {
+			board.put(pos,card );
+			for(CardAnchor anchor : cardAnchors) {
+				for(CardAnchor anchor2 : cardAnchors) {
+					if(anchor2.equals(anchor)) continue;
+					if(card.getGraph().hasEdge(anchor, anchor2)) {
+						graph.addEdge(BoardAnchor.of(pos, anchor), BoardAnchor.of(pos, anchor2));
+					}
+				}
+			}
+			return;
+		}
+		//check if the card can be placed at the given position
+		else if(canCardBePlacedAt(x,y,card)) {
+			//put the card on the board
+			board.put(pos, card);
+			for(CardAnchor anchor : cardAnchors) {
+				BoardAnchor boardAnchor = BoardAnchor.of(pos,anchor);
+				graph.addVertex(boardAnchor);
+				//connect the card's vertices to the existing board's vertices  
+				BoardAnchor next = BoardAnchor.of(anchor.getAdjacentPosition(pos), anchor.getOppositeAnchor());
+				if(graph.hasVertex(next)) {
+					graph.addEdge(next, boardAnchor);
+					}
+				}
+			//connect all the cards internal vertices according to the card's graph
+			for(CardAnchor anchor : cardAnchors) {
+				for(CardAnchor anchor2 : cardAnchors) {
+					if(anchor2.equals(anchor)) continue;
+					if(card.getGraph().hasEdge(anchor, anchor2)) {
+						graph.addEdge(BoardAnchor.of(pos, anchor), BoardAnchor.of(pos, anchor2));
+					}
+				}
+			}
+		}
 		// stehen lassen
 		// check for goal cards
 		checkGoalCards();
@@ -81,7 +142,6 @@ public class Gameboard {
 				}
 			}
 		}
-		
 	}
 	
 	/**
@@ -92,6 +152,19 @@ public class Gameboard {
 	 */
 	public PathCard removeCard(int x, int y) {
 		// TODO Aufgabe 4.1.5
+		Position pos = new Position(x,y);
+		if(!isPositionEmpty(x,y)) {
+		//the removed card
+		PathCard result = board.get(pos);
+		//remove the card from the board
+			board.remove(pos);
+		//the the card's vertices from the board's graph
+		for(CardAnchor anchor : result.getGraph().vertices()) {
+			BoardAnchor boardAnchor = BoardAnchor.of(pos, anchor);
+			graph.removeVertex(boardAnchor);
+		}
+		return result;
+		}
 		return null;
 	}
 	
@@ -117,7 +190,10 @@ public class Gameboard {
 	 */
 	private boolean isPositionEmpty(int x, int y) {
 		// TODO Aufgabe 4.1.6
-		return true;
+		if(!board.containsKey(Position.of(x, y))) {
+			return true;
+		}
+		return  false;
 	}
 	
 	/**
@@ -128,9 +204,33 @@ public class Gameboard {
 	 */
 	private boolean existsPathFromStartCard(int x, int y) {
 		// TODO Aufgabe 4.1.7
-		
+		Position thisPos = Position.of(x, y);
+		//the set of all the anchors adjacent to the given position
+		Set<BoardAnchor> adjAnchors = new HashSet<>();
+		for(CardAnchor anchor : CardAnchor.values()){
+			BoardAnchor boardanchor = BoardAnchor.of(anchor.getAdjacentPosition(thisPos), anchor.getOppositeAnchor());
+			adjAnchors.add(boardanchor);
+		}
+		for(Position pos : board.keySet()) {
+			//get the startcards
+			if(board.get(pos).isStartCard()) {
+				//get the start card's anchors
+				Set<BoardAnchor> startAnchors = new HashSet<>();	
+				for(BoardAnchor anchor : graph.vertices()) {
+					if (anchor.x() == pos.x() && anchor.y() == pos.y()) {
+						startAnchors.add(anchor);
+					}
+				}
+				//check if there exists a path to any of the anchors adjacent to the given position from any start card
+				for(BoardAnchor start : startAnchors) {
+					for(BoardAnchor end : adjAnchors) {
+						if(graph.hasPath(start, end)) return true;
+					}
+				}
+			}
+		}
 		// die folgende Zeile entfernen und durch den korrekten Wert ersetzen
-		return board.computeIfAbsent(CardAnchor.left.getAdjacentPosition(Position.of(x + 1, y)), p -> null) == null;
+		return false;
 	}
 	
 	/**
@@ -142,8 +242,54 @@ public class Gameboard {
 	 */
 	private boolean doesCardMatchItsNeighbors(int x, int y, PathCard card) {
 		// TODO Aufgabe 4.1.8
-		return true;
+		Position pos = Position.of(x, y);
+		//set of this card's anchors
+		Set<CardAnchor> anchors = new HashSet<>();
+		for(CardAnchor 	anchor : card.getGraph().vertices()) {
+			anchors.add(anchor);
+		}
+		//map of this card's neighbors and their direction
+		Map<CardAnchor,PathCard> neighbors = new HashMap<>();
+		for(CardAnchor anchor : CardAnchor.values()) {
+			if(!isPositionEmpty(anchor.getAdjacentPosition(pos).x(),anchor.getAdjacentPosition(pos).y())) {
+				neighbors.put(anchor,board.get(anchor.getAdjacentPosition(pos)));
+			}
+		}
+		//remove any covered goal card from the map of neighbors
+		for(CardAnchor anchor : neighbors.keySet()) {
+			if(neighbors.get(anchor).isGoalCard()) {
+				GoalCard goalCard = (GoalCard) neighbors.get(anchor);
+				if(goalCard.isCovered())neighbors.remove(anchor);
+			}
+		}
+		//array of the passed status of the neighboring cards
+		boolean[] passed = new boolean[neighbors.size()];
+		for(int a = 0; a < passed.length; a++) {
+			passed[a] = false;
+		}
+		int i = 0;
+		//check if the cards' anchors match with each other
+		for(CardAnchor anchor : neighbors.keySet()) {
+			if(anchors.contains(anchor)) {
+				for(CardAnchor neighborAnchor : neighbors.get(anchor).getGraph().vertices()) {
+					if(neighborAnchor.equals(anchor.getOppositeAnchor())) passed[i] = true;
+				}
+			}
+			else {
+				passed[i] = true;
+				for(CardAnchor neighborAnchor : neighbors.get(anchor).getGraph().vertices()) {
+					if(neighborAnchor.equals(anchor.getOppositeAnchor())) passed[i] = false;
+				}
+			}
+			i++;
+		}
+		boolean result = true;
+		for(int a = 0; a < passed.length; a++) {
+			result = result & passed[a];
+		}
+		return result;
 	}
+	
 	
 	/**
 	 * Gibt genau dann {@code true} zurück, wenn eine aufgedeckte Goldkarte im Wegelabyrinth liegt.
