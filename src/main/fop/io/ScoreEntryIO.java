@@ -1,5 +1,12 @@
 package fop.io;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import fop.model.ScoreEntry;
@@ -28,7 +35,29 @@ public final class ScoreEntryIO {
 	 */
 	public static List<ScoreEntry> loadScoreEntries() {
 		// TODO Aufgabe 4.2.2
-		return List.of();
+		
+		// linked list to store all the Score Entries
+		List<ScoreEntry> result = new LinkedList<ScoreEntry>();
+		
+		// read all the Score Entries to the linked list
+		try(FileReader reader1 = new FileReader(PATH);
+			BufferedReader reader2 = new BufferedReader(reader1)){
+			
+			String str = "";
+			
+			// read each Score Entry in each line and add it in the list
+			while((str = reader2.readLine()) != null)
+			{
+				ScoreEntry entry = ScoreEntry.read(str);
+				result.add(entry);
+			}
+			
+		}
+		catch(IOException exc) {	// return a empty list when there is IOError
+			return new LinkedList<ScoreEntry>();
+		}
+		//return the completed list of score entries
+		return result;
 	}
 	
 	/**
@@ -37,7 +66,22 @@ public final class ScoreEntryIO {
 	 * @param scoreEntries die zu schreibenden ScoreEntry Objekte
 	 */
 	public static void writeScoreEntries(List<ScoreEntry> scoreEntries) {
-		// TODO Aufgabe 4.2.2
+		// TODO Aufgabe 4.2.2	
+		
+		// write all the score entries in the file
+		try(FileWriter writer1 = new FileWriter(PATH);
+			PrintWriter writer2 = new PrintWriter(writer1)){
+			//make a iterator from the list of score entries
+			Iterator<ScoreEntry> iterator = scoreEntries.iterator();
+			//loop through the iterator and write each score entry in the file
+			while(iterator.hasNext()) {
+				ScoreEntry entry = iterator.next();
+				entry.write(writer2);
+			}
+		}
+		catch(IOException exc) {
+
+		}
 	}
 	
 	/**
@@ -48,6 +92,53 @@ public final class ScoreEntryIO {
 	 */
 	public static void addScoreEntry(ScoreEntry scoreEntry) {
 		// TODO Aufgabe 4.2.3
+		// read all the score entries from file
+		List<ScoreEntry> entries = loadScoreEntries();
+		
+		// create an iterator to traverse through the list
+		Iterator<ScoreEntry> iterator = entries.iterator();
+		
+		// variable index to mark the searched position in the list
+		int index = 0;
+		
+		// check if the correct added position is found
+		boolean found = false;
+		
+		// traverse through the list
+		while(iterator.hasNext()) {
+			ScoreEntry entry = iterator.next();
+			
+			// if the entry in list is bigger in placement than the given entry, then we should add the entry in this position
+			if (entry.compareTo(scoreEntry) > 0) {
+				entries.add(index, scoreEntry);
+				found = true;
+				break;
+			}
+			// or if it is the same in placement
+			else if (entry.compareTo(scoreEntry) == 0) {
+				// go through all the equal entry to add it at the end 
+				while((entry.compareTo(scoreEntry) == 0)) {
+					index++;
+					if (iterator.hasNext())
+						entry = iterator.next();
+					else
+						break;
+				}
+				entries.add(index, scoreEntry);
+				found = true;
+				break;
+			}
+			// increment the the position to track the next element
+			index++;
+		}
+		
+		//add in the end if there is no appropriate position between the list
+		if (!found) {
+			entries.add(index, scoreEntry);
+		}
+		
+		//write the score entries back in the file
+		writeScoreEntries(entries);
 	}
 	
 }
