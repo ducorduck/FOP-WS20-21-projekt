@@ -51,9 +51,9 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
             }
             splitLine[count] += i;
         }
-		if (count != 2) {
-			return null;
-		}
+	if (count != 2) {
+		return null;
+	}
         return splitLine;
     }
 
