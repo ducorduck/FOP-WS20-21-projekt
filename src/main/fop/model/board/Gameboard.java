@@ -248,6 +248,7 @@ public class Gameboard {
 		for(CardAnchor 	anchor : card.getGraph().vertices()) {
 			anchors.add(anchor);
 		}
+		
 		//map of this card's neighbors and their direction
 		Map<CardAnchor,PathCard> neighbors = new HashMap<>();
 		for(CardAnchor anchor : CardAnchor.values()) {
@@ -256,12 +257,19 @@ public class Gameboard {
 			}
 		}
 		//remove any covered goal card from the map of neighbors
+		Set<CardAnchor> removeAnchorNeighbor = new HashSet<>();
 		for(CardAnchor anchor : neighbors.keySet()) {
 			if(neighbors.get(anchor).isGoalCard()) {
 				GoalCard goalCard = (GoalCard) neighbors.get(anchor);
-				if(goalCard.isCovered())neighbors.remove(anchor);
+				if(goalCard.isCovered()) 
+					removeAnchorNeighbor.add(anchor);					
 			}
+			
 		}
+		for(CardAnchor anchor: removeAnchorNeighbor) {
+			neighbors.remove(anchor);
+		}
+		
 		//array of the passed status of the neighboring cards
 		boolean[] passed = new boolean[neighbors.size()];
 		for(int a = 0; a < passed.length; a++) {
@@ -269,17 +277,17 @@ public class Gameboard {
 		}
 		int i = 0;
 		//check if the cards' anchors match with each other
-		for(CardAnchor anchor : neighbors.keySet()) {
-			if(anchors.contains(anchor)) {
-				for(CardAnchor neighborAnchor : neighbors.get(anchor).getGraph().vertices()) {
-					if(neighborAnchor.equals(anchor.getOppositeAnchor())) passed[i] = true;
-				}
+		for(CardAnchor anchor : neighbors.keySet()) { 
+			Set<CardAnchor> neighborsAnchors = neighbors.get(anchor).getGraph().vertices();
+			if(anchors.contains(anchor)) { //anchors.contains(anchor)
+				if(neighborsAnchors.contains(anchor.getOppositeAnchor()))
+					passed[i] = true; 
 			}
 			else {
 				passed[i] = true;
-				for(CardAnchor neighborAnchor : neighbors.get(anchor).getGraph().vertices()) {
-					if(neighborAnchor.equals(anchor.getOppositeAnchor())) passed[i] = false;
-				}
+				if(neighborsAnchors.contains(anchor.getOppositeAnchor()))
+					passed[i] = false;
+
 			}
 			i++;
 		}
