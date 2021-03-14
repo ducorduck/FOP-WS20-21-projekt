@@ -49,6 +49,10 @@ public final class ScoreEntryIO {
 			while((str = reader2.readLine()) != null)
 			{
 				ScoreEntry entry = ScoreEntry.read(str);
+				if (entry == null)
+				{
+					continue;
+				}
 				result.add(entry);
 			}
 			
@@ -76,6 +80,8 @@ public final class ScoreEntryIO {
 			//loop through the iterator and write each score entry in the file
 			while(iterator.hasNext()) {
 				ScoreEntry entry = iterator.next();
+				if (entry == null)
+					continue;
 				entry.write(writer2);
 			}
 		}
@@ -109,7 +115,7 @@ public final class ScoreEntryIO {
 			ScoreEntry entry = iterator.next();
 			
 			// if the entry in list is bigger in placement than the given entry, then we should add the entry in this position
-			if (entry.compareTo(scoreEntry) > 0) {
+			if (entry.compareTo(scoreEntry) < 0) {
 				entries.add(index, scoreEntry);
 				found = true;
 				break;
