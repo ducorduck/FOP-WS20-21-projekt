@@ -89,13 +89,12 @@ public class Graph<V> {
 		G.remove(v);
 		//remove the node from all other nodes' adjacent list
 		for(V vertex: G.keySet()) {
-            for (int i = 0; i <G.get(vertex).size(); i++) {
-                if(G.get(vertex).contains(v)) {
-                	Set<V> set = G.get(vertex);
-                	set.remove(v);
-                    G.put(vertex,set);
-                }
-            }
+			//get set of edges connected to v
+			Set<V> set = G.get(vertex);
+			//remove edges connected to vertex v
+           		if(set.contains(v))
+               			set.remove(v);
+            
 		}
 		return true;
 	}
