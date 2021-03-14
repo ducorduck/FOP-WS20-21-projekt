@@ -2,6 +2,7 @@ package fop.model;
 
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 /**
  * 
@@ -30,6 +31,33 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
 	// load and save //
 	
 	/**
+	 * split the input string into 3 substring as an array, 
+	 * each substring in the input string should then be separated by the semicolon ";"
+	 * @param line: input string that should contain 2 semicolon and 1 line
+	 * @return 3 substrings as an array
+	 * @return {@code null}, if there are more or less than 2 semicolon, or the input string contains more than 1 line
+	 */
+	public static String[] split (String line){
+        String [] splitLine = {"","",""};
+        int count = 0;
+        //Split the String line
+        for (char i : line.toCharArray()) {
+            if (i == ';') {
+                count++;
+                continue;
+            }
+            if (count > 2 || i == '\n') {
+                return null;
+            }
+            splitLine[count] += i;
+        }
+		if (count != 2) {
+			return null;
+		}
+        return splitLine;
+    }
+
+	/**
 	 * Wandelt eine Zeile in ein ScoreEntry Objekt.<br>
 	 * Gibt {@code null} zurück, wenn die Zeile nicht in ein
 	 * ScoreEntry Objekt umgewandelt werden kann.<br>
@@ -39,7 +67,34 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
 	 */
 	public static ScoreEntry read(String line) {
 		// TODO Aufgabe 4.2.1
-		return null;
+
+		String[] entryArray = split(line);
+		if (entryArray == null) {
+			return null;
+		}
+		String newName = entryArray[0];
+		if (newName == "") {
+			return null;
+		}
+		int newScore = 0;
+		LocalDateTime newTime = null;
+
+		try {
+			newScore = Integer.parseInt(entryArray[2]);
+			if (newScore < 0) {
+				return null;
+			}
+		} catch (NumberFormatException e) {
+			return null;
+		}
+		
+		try {
+			newTime = LocalDateTime.parse(entryArray[1]);
+		} catch (DateTimeParseException e) {
+			return null;
+		}
+		
+		return new ScoreEntry (newName, newTime, newScore);
 	}
 	
 	/**
@@ -49,6 +104,8 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
 	 */
 	public void write(PrintWriter printWriter) {
 		// TODO Aufgabe 4.2.1
+		String entryString = name + ";" + dateTime.toString() + ";" + Integer.toString(score);
+		printWriter.println(entryString);
 	}
 	
 	// get //
