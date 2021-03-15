@@ -20,7 +20,7 @@ public final class FontReader {
 	private static final String PATH = "/font";
 	
 	/** Der Name der Standardschriftart für das Menü */
-	private static final String MENU_FONT = "CATFranken-Deutsch";
+	private static final String MENU_FONT = "BadComic-Regular";
 	
 	private FontReader() {}
 	
