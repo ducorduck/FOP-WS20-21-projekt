@@ -1,5 +1,6 @@
 package fop.model.graph.io;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedReader;
@@ -130,15 +131,15 @@ public class ScoreEntryIOTest {
     @Test
     public void testLoadScoreEntries() {
         writeFile("K;-999999999-01-01T00:00;190", "J;1999-01-23T23:59:03.000000003;190", "C;+999999999-12-31T23:59:59.999999999;30", "E;2019-04-30T12:05;90");
-        assertEquals(entries08, ScoreEntryIO.loadScoreEntries().toArray());
+        assertArrayEquals(entries08, ScoreEntryIO.loadScoreEntries().toArray());
         writeFile("B;-999999999-01-01T00:00;70", "J;1999-01-23T23:59:03.000000003;190");
-        assertEquals(entries03, ScoreEntryIO.loadScoreEntries().toArray());
+        assertArrayEquals(entries03, ScoreEntryIO.loadScoreEntries().toArray());
         writeFile("J;1999-01-23T23:59:03.000000003;190","M;1999-01-23T23:59:03;15.4","B;-999999999-01-01T00:00;70","D;2020-12-12T03:45;120");
-        assertEquals(entries06,ScoreEntryIO.loadScoreEntries().toArray());
+        assertArrayEquals(entries06,ScoreEntryIO.loadScoreEntries().toArray());
         writeFile("E;2019-04-30T12:05;90","E;2019-04-30T12:05;90","E;2019-04-30T12:05;90");
-        assertEquals(entries07,ScoreEntryIO.loadScoreEntries().toArray());
+        assertArrayEquals(entries07,ScoreEntryIO.loadScoreEntries().toArray());
         writeFile("K;12.7-01-01T00:00;190","Z;-1999-13-23T23:59:03.000000003;190","E2019-04-30T12:05;90",";2019-04-30T12:05;90");
-        assertEquals(entries00,ScoreEntryIO.loadScoreEntries().toArray());
+        assertArrayEquals(entries00,ScoreEntryIO.loadScoreEntries().toArray());
 
     }
 
