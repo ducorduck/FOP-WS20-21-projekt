@@ -26,14 +26,16 @@ public class HighscoreView extends MenuView {
     @Override
     protected void addContent(JPanel contentPanel) {
         // TODO Auto-generated method stub
+		contentPanel.setLayout(new GridBagLayout());
 		
-		//Table thing
+		//Score table
 		GridBagConstraints tableConstraints = new GridBagConstraints ();
+		tableConstraints.weightx = 1.0;
+		tableConstraints.weighty = 1.0;
 		tableConstraints.fill = GridBagConstraints.BOTH;
-		tableConstraints.insets = new Insets(0,2,2,2);
+		tableConstraints.insets = new Insets(0, 2, 2, 2);
 		tableConstraints.gridx = 0;
 		tableConstraints.gridy = 0;
-
 		DefaultTableModel tableModel = new DefaultTableModel() {
 			/**
 			 *
@@ -71,13 +73,13 @@ public class HighscoreView extends MenuView {
 
         
         // back button //
-		GridBagConstraints rightImageConstraints = new GridBagConstraints();
-		rightImageConstraints.insets = new Insets(2, 2, 0, 2);
-		rightImageConstraints.gridx = 0;
-		rightImageConstraints.gridy = 1;
+		GridBagConstraints buttonGBC = new GridBagConstraints();
+		buttonGBC.insets = new Insets(2, 2, 0, 2);
+		buttonGBC.gridx = 0;
+		buttonGBC.gridy = 1;
 		JButton backButton = createButton("Zurück");
 		backButton.addActionListener(evt -> getWindow().setView(new MainMenu(getWindow())));
-		contentPanel.add(backButton, rightImageConstraints);
-        
+		contentPanel.add(backButton, buttonGBC);
+		
     }
 }
