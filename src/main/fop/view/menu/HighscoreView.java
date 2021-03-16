@@ -6,16 +6,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import fop.io.*;
-import fop.model.*;
-import java.awt.*;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.GridLayout;
 import java.time.format.DateTimeFormatter;
+
+import fop.io.ScoreEntryIO;
+import fop.model.ScoreEntry;
 import fop.view.MainFrame;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class HighscoreView extends MenuView {
 
@@ -26,24 +27,22 @@ public class HighscoreView extends MenuView {
 
 	public HighscoreView(MainFrame window) {
         super(window, "Highscores");
-		
     }
 
     @Override
     protected void addContent(JPanel contentPanel) {
         // TODO Auto-generated method stub
 		contentPanel.setLayout(new GridBagLayout());
-		
-		//Score table
-		GridBagConstraints tableConstraints = new GridBagConstraints ();
+
+		GridBagConstraints tableConstraints = new GridBagConstraints();
 		tableConstraints.weightx = 1.0;
-		tableConstraints.weighty = 9.0;
-		tableConstraints.ipady = 0;
+		tableConstraints.weighty = 1.0;
 		tableConstraints.fill = GridBagConstraints.BOTH;
 		tableConstraints.insets = new Insets(0, 2, 2, 2);
-		tableConstraints.gridwidth = 2;
 		tableConstraints.gridx = 0;
 		tableConstraints.gridy = 0;
+
+		//create table
 		DefaultTableModel tableModel = new DefaultTableModel() {
 			/**
 			 *
@@ -63,7 +62,6 @@ public class HighscoreView extends MenuView {
 				return false;
 			}
 		};
-
 		JTable scoreTable = new JTable(tableModel);
 		scoreTable.setColumnSelectionAllowed(false);
 		scoreTable.setRowSelectionAllowed(false);
@@ -77,45 +75,29 @@ public class HighscoreView extends MenuView {
 			String[] scoreDate = {date,name,score};
 			tableModel.addRow(scoreDate);
 		}
-		contentPanel.add(new JScrollPane(scoreTable),tableConstraints);
+		JScrollPane scrollPane = new JScrollPane(scoreTable);
+		scrollPane.setBorder(null);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		contentPanel.add(scrollPane,tableConstraints);
         
 
-
-        // back button //
-		/*
+        // button panel //
 		GridBagConstraints buttonGBC = new GridBagConstraints();
-        buttonGBC.fill = GridBagConstraints.BOTH;
-        buttonGBC.anchor = GridBagConstraints.CENTER;
-		buttonGBC.insets = new Insets (5,2,0,2);
+		buttonGBC.insets = new Insets(2, 2, 0, 2);
 		buttonGBC.gridx = 0;
 		buttonGBC.gridy = 1;
-		*/
-		tableConstraints.gridx = 0;
-		tableConstraints.gridy = 1;
-		tableConstraints.gridwidth = 1;
-		tableConstraints.anchor = GridBagConstraints.SOUTHEAST;
-		tableConstraints.fill = GridBagConstraints.NONE;
-		tableConstraints.ipady = 0;
+		JPanel buttonPanel = new JPanel(new GridLayout(0, 2, 10, 0));
+		// back button //
 		JButton backButton = createButton("Zurück");
 		backButton.addActionListener(evt -> getWindow().setView(new MainMenu(getWindow())));
-		contentPanel.add(backButton, tableConstraints);
-
-		tableConstraints.anchor = GridBagConstraints.SOUTHWEST;
-		tableConstraints.gridx = 1;
+		buttonPanel.add(backButton, buttonGBC);
+		//clear button //
 		JButton clearButton = createButton("Löschen");
 		clearButton.addActionListener(evt -> { ScoreEntryIO.clearHighScore();
 												getWindow().setView(new HighscoreView(getWindow()));});
-		contentPanel.add(clearButton, tableConstraints);
+		buttonPanel.add(clearButton, buttonGBC);
 
-		/*
-		GridBagConstraints buttonGBC2 = new GridBagConstraints();
-        buttonGBC2.fill = GridBagConstraints.BOTH;
-        buttonGBC2.anchor = GridBagConstraints.CENTER;
-		buttonGBC2.insets = new Insets (5,2,0,2);
-		buttonGBC2.gridx = 1;
-		buttonGBC2.gridy = 1;
-		buttonGBC2.insets = new Insets (5,2,0,2);
-		buttonGBC.fill = GridBagConstraints.NONE;*/
+		contentPanel.add(buttonPanel, buttonGBC);
 
     }
 }

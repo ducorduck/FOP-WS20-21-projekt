@@ -73,9 +73,7 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
 			return null;
 		}
 		String newName = entryArray[0];
-		if (newName == "") {
-			return null;
-		}
+
 		int newScore = 0;
 		LocalDateTime newTime = null;
 

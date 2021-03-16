@@ -27,7 +27,7 @@ public final class NewGameView extends MenuView {
 	private List<JLabel> idList;
 	private List<JTextField> nameList;
 	private List<JToggleButton> computerList;
-	
+
 	public NewGameView(MainFrame window) {
 		super(window, "Neues Spiel");
 	}

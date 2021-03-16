@@ -19,6 +19,7 @@ import fop.model.board.Position;
 import fop.model.cards.*;
 import fop.model.cards.GoalCard.Type;
 import javax.swing.SwingWorker;
+import static fop.model.TeamColor.*;
 
 /**
  * 
@@ -96,26 +97,38 @@ public final class GameController {
 		}.execute();
 	}
 	
+	public static int[] rolesCounter() {
+		int playerCount = players.size();
+		int saboteurCount, redGoldMinerCount, blueGoldMinerCount = 0;
+		if (playerCount <= 10) {
+			//It is possible to have only Blue and Red Goldminers on a game
+			saboteurCount = 		List.of(0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3).get(playerCount);
+			redGoldMinerCount = 	List.of(0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4).get(playerCount);
+			blueGoldMinerCount = 	List.of(0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4).get(playerCount);
+			//playerCount =					0  1  2  3  4  5  6  7  8  9  10
+		} else { //playerCount > 10 
+			blueGoldMinerCount = redGoldMinerCount = 1 + playerCount / 3;
+			saboteurCount = playerCount - blueGoldMinerCount - redGoldMinerCount;
+		}
+		return new int [] {saboteurCount,redGoldMinerCount,blueGoldMinerCount};
+	}
+
 	/**
 	 * Setzt die Rollen der Spieler.
 	 */
 	public static void assignRoles() {
 		if (players.isEmpty()) return;
-		int playerCount = players.size();
-		
-		int saboteurCount = playerCount <= 10 ? List.of(0, 1, 1, 1, 2, 2, 2, 3, 3, 3).get(playerCount - 1) : playerCount - 2 * (playerCount / 3);
-		int goldMinerCount = playerCount <= 10 ? List.of(1, 1, 1, 2, 2, 2, 3, 3, 3, 4).get(playerCount - 1) : playerCount / 3;
-		int thirdRoleCount = playerCount <= 10 ? List.of(0, 0, 1, 1, 2, 2, 2, 3, 3, 3).get(playerCount - 1) : playerCount / 3;
+		int saboteurCount = rolesCounter()[0];
+		int redGoldMinerCount = rolesCounter()[1];
+		int blueGoldMinerCount = rolesCounter()[2];
 		
 		List<Role> roles = new LinkedList<>();
 		for (int i = 0; i < saboteurCount; i++)
 			roles.add(Role.SABOTEUR);
-		for (int i = 0; i < goldMinerCount; i++)
+		for (int i = 0; i < redGoldMinerCount; i++)
 			roles.add(Role.RED_GOLD_MINER);
-		if (Role.values().length > 2) {
-			Role thirdRole = Arrays.stream(Role.values()).filter(r -> r != Role.SABOTEUR && r != Role.RED_GOLD_MINER).findFirst().get();
-			for (int i = 0; i < thirdRoleCount; i++)
-				roles.add(thirdRole);
+		for (int i = 0; i < blueGoldMinerCount; i++) {
+			roles.add(Role.BLUE_GOLD_MINER);
 		}
 		
 		Collections.shuffle(roles);
@@ -174,8 +187,8 @@ public final class GameController {
 	 * Initialisiert das Wegelabyrinth.
 	 */
 	private static void initMaze() {
-		gameboard.placeCard(0, 0, new StartCard(true));
-		if (players.size() >= 3) gameboard.placeCard(16,0 , new StartCard(false));
+		gameboard.placeCard(0, 0, new StartCard(RED));
+		if (rolesCounter()[2] > 0) gameboard.placeCard(16,0 , new StartCard(BLUE));
 		List<GoalCard> goalCards = new LinkedList<>(List.of(new GoalCard(Type.Gold), new GoalCard(Type.Stone), new GoalCard(Type.Stone)));
 		Collections.shuffle(goalCards);
 		gameboard.placeCard(8, -2, goalCards.remove(0));
@@ -246,7 +259,7 @@ public final class GameController {
                     y = pos.y();
                 }
             }
-            if (gameboard.existsPathFromStartCard(x, y, true))
+            if (gameboard.existsPathFromStartCard(x, y, RED))
                 return players.stream().filter(p -> p.getRole() == Player.Role.RED_GOLD_MINER).collect(Collectors.toList());
             else
                 return players.stream().filter(p -> p.getRole() == Player.Role.BLUE_GOLD_MINER).collect(Collectors.toList());

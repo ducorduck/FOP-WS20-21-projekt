@@ -138,7 +138,7 @@ public class ScoreEntryIOTest {
         assertArrayEquals(entries06,ScoreEntryIO.loadScoreEntries().toArray());
         writeFile("E;2019-04-30T12:05;90","E;2019-04-30T12:05;90","E;2019-04-30T12:05;90");
         assertArrayEquals(entries07,ScoreEntryIO.loadScoreEntries().toArray());
-        writeFile("K;12.7-01-01T00:00;190","Z;-1999-13-23T23:59:03.000000003;190","E2019-04-30T12:05;90",";2019-04-30T12:05;90");
+        writeFile("K;12.7-01-01T00:00;190","Z;-1999-13-23T23:59:03.000000003;190","E2019-04-30T12:05;90",";2019-04-30T12:05;90.5");
         assertArrayEquals(entries00,ScoreEntryIO.loadScoreEntries().toArray());
 
     }

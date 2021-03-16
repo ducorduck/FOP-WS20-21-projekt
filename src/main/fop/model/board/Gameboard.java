@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import fop.model.TeamColor;
 import fop.model.cards.CardAnchor;
 import fop.model.cards.GoalCard;
 import fop.model.cards.PathCard;
@@ -320,7 +321,7 @@ public class Gameboard {
 		return (int) board.keySet().stream().filter(pos -> neighborPositions.contains(pos)).count();
 	}
 	
-	public boolean existsPathFromStartCard(int x, int y, boolean isRed) {
+	public boolean existsPathFromStartCard(int x, int y, TeamColor color) {
         // TODO Aufgabe 4.1.7
         Position thisPos = Position.of(x, y);
         //the set of all the anchors adjacent to the given position
@@ -333,7 +334,7 @@ public class Gameboard {
             //get the startcards
             if(board.get(pos).isStartCard()) {
                 StartCard startcard = (StartCard) board.get(pos);
-                if (startcard.isRed() == isRed) {
+                if (startcard.getColor() == color) {
                     //get the start card's anchors
                     Set<BoardAnchor> startAnchors = new HashSet<>();
                     for(BoardAnchor anchor : graph.vertices()) {

@@ -13,14 +13,22 @@
 		<edge start="top" end="bottom"/>
 		<edge start="left" end="bottom"/>
 	</card>
-	<card name="tunnel" count="3">
+	<card name="tunnel" count="2">
 		<edge start="top" end="bottom"/>
 		<edge start="left" end="right"/>
 	</card>
-	<card name ="line_vert_dead_two" count="3">
+	<card name="line_vert_dead_two" count="1">
 		<edge start="top" end="bottom"/>
 		<node value="left"/>
 		<node value="right"/>
+	</card>
+	<card name="curve_up_dead_bottom" count="2">
+		<edge start="left" end="top"/>
+		<node value="bottom"/>
+	</card>
+	<card name="curve_double_down" count="1">
+		<edge start="top" end="right"/>
+		<edge start="bottom" end="left"/>
 	</card>
 	<card name="three_horiz" count="5">
 		<edge start="left" end="bottom"/>
