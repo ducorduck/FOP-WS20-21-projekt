@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import fop.model.cards.CardAnchor;
 import fop.model.cards.GoalCard;
 import fop.model.cards.PathCard;
+import fop.model.cards.StartCard;
 import fop.model.graph.Graph;
 
 /**
@@ -319,4 +320,37 @@ public class Gameboard {
 		return (int) board.keySet().stream().filter(pos -> neighborPositions.contains(pos)).count();
 	}
 	
+	public boolean existsPathFromStartCard(int x, int y, boolean isRed) {
+        // TODO Aufgabe 4.1.7
+        Position thisPos = Position.of(x, y);
+        //the set of all the anchors adjacent to the given position
+        Set<BoardAnchor> adjAnchors = new HashSet<>();
+        for(CardAnchor anchor : CardAnchor.values()){
+            BoardAnchor boardanchor = BoardAnchor.of(anchor.getAdjacentPosition(thisPos), anchor.getOppositeAnchor());
+            adjAnchors.add(boardanchor);
+        }
+        for(Position pos : board.keySet()) {
+            //get the startcards
+            if(board.get(pos).isStartCard()) {
+                StartCard startcard = (StartCard) board.get(pos);
+                if (startcard.isRed() == isRed) {
+                    //get the start card's anchors
+                    Set<BoardAnchor> startAnchors = new HashSet<>();
+                    for(BoardAnchor anchor : graph.vertices()) {
+                        if (anchor.x() == pos.x() && anchor.y() == pos.y()) {
+                            startAnchors.add(anchor);
+                        }
+                    }
+                    //check if there exists a path to any of the anchors adjacent to the given position from any start card
+                    for(BoardAnchor start : startAnchors) {
+                        for(BoardAnchor end : adjAnchors) {
+                            if(graph.hasPath(start, end)) return true;
+                        }
+                    }
+                }
+            }
+        }
+        // die folgende Zeile entfernen und durch den korrekten Wert ersetzen
+        return false;
+    }
 }

@@ -13,6 +13,15 @@
 		<edge start="top" end="bottom"/>
 		<edge start="left" end="bottom"/>
 	</card>
+	<card name="tunnel" count="3">
+		<edge start="top" end="bottom"/>
+		<edge start="left" end="right"/>
+	</card>
+	<card name ="line_vert_dead_two" count="3">
+		<edge start="top" end="bottom"/>
+		<node value="left"/>
+		<node value="right"/>
+	</card>
 	<card name="three_horiz" count="5">
 		<edge start="left" end="bottom"/>
 		<edge start="left" end="right"/>

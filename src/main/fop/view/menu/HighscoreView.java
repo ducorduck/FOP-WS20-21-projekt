@@ -5,12 +5,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+
 import fop.io.*;
 import fop.model.*;
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import fop.view.MainFrame;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class HighscoreView extends MenuView {
 
@@ -21,6 +26,7 @@ public class HighscoreView extends MenuView {
 
 	public HighscoreView(MainFrame window) {
         super(window, "Highscores");
+		
     }
 
     @Override
@@ -31,9 +37,11 @@ public class HighscoreView extends MenuView {
 		//Score table
 		GridBagConstraints tableConstraints = new GridBagConstraints ();
 		tableConstraints.weightx = 1.0;
-		tableConstraints.weighty = 1.0;
+		tableConstraints.weighty = 9.0;
+		tableConstraints.ipady = 0;
 		tableConstraints.fill = GridBagConstraints.BOTH;
 		tableConstraints.insets = new Insets(0, 2, 2, 2);
+		tableConstraints.gridwidth = 2;
 		tableConstraints.gridx = 0;
 		tableConstraints.gridy = 0;
 		DefaultTableModel tableModel = new DefaultTableModel() {
@@ -70,16 +78,44 @@ public class HighscoreView extends MenuView {
 			tableModel.addRow(scoreDate);
 		}
 		contentPanel.add(new JScrollPane(scoreTable),tableConstraints);
-
         
+
+
         // back button //
+		/*
 		GridBagConstraints buttonGBC = new GridBagConstraints();
-		buttonGBC.insets = new Insets(2, 2, 0, 2);
+        buttonGBC.fill = GridBagConstraints.BOTH;
+        buttonGBC.anchor = GridBagConstraints.CENTER;
+		buttonGBC.insets = new Insets (5,2,0,2);
 		buttonGBC.gridx = 0;
 		buttonGBC.gridy = 1;
+		*/
+		tableConstraints.gridx = 0;
+		tableConstraints.gridy = 1;
+		tableConstraints.gridwidth = 1;
+		tableConstraints.anchor = GridBagConstraints.SOUTHEAST;
+		tableConstraints.fill = GridBagConstraints.NONE;
+		tableConstraints.ipady = 0;
 		JButton backButton = createButton("Zurück");
 		backButton.addActionListener(evt -> getWindow().setView(new MainMenu(getWindow())));
-		contentPanel.add(backButton, buttonGBC);
-		
+		contentPanel.add(backButton, tableConstraints);
+
+		tableConstraints.anchor = GridBagConstraints.SOUTHWEST;
+		tableConstraints.gridx = 1;
+		JButton clearButton = createButton("Löschen");
+		clearButton.addActionListener(evt -> { ScoreEntryIO.clearHighScore();
+												getWindow().setView(new HighscoreView(getWindow()));});
+		contentPanel.add(clearButton, tableConstraints);
+
+		/*
+		GridBagConstraints buttonGBC2 = new GridBagConstraints();
+        buttonGBC2.fill = GridBagConstraints.BOTH;
+        buttonGBC2.anchor = GridBagConstraints.CENTER;
+		buttonGBC2.insets = new Insets (5,2,0,2);
+		buttonGBC2.gridx = 1;
+		buttonGBC2.gridy = 1;
+		buttonGBC2.insets = new Insets (5,2,0,2);
+		buttonGBC.fill = GridBagConstraints.NONE;*/
+
     }
 }

@@ -16,12 +16,20 @@ import fop.model.graph.Graph;
  */
 public final class StartCard extends PathCard {
 	
-	public StartCard(Graph<CardAnchor> graph) {
-		super("start", graph);
+	private final boolean isRed;
+
+	public StartCard(Graph<CardAnchor> graph, boolean isRed) {
+		super(isRed? "start" : "start2", graph);
+		this.isRed = isRed;
 	}
 	
-	public StartCard() {
-		super("start", List.of(List.of(left, bottom, right, top)));
+	public StartCard(boolean isRed) {
+		super(isRed? "start" : "start2", List.of(List.of(left, bottom, right, top)));
+		this.isRed = isRed;
+	}
+
+	public boolean isRed() {
+		return isRed;
 	}
 	
 	/**
