@@ -78,6 +78,11 @@ public class Gameboard {
 					}
 				}
 			}
+			for(CardAnchor anchor: goalAnchors) {
+				BoardAnchor adjacentAnchor = BoardAnchor.of(anchor.getAdjacentPosition(Position.of(x, y)), anchor.getOppositeAnchor());
+					if(graph.hasVertex(adjacentAnchor)) 
+						graph.addEdge(BoardAnchor.of(pos, anchor), adjacentAnchor);					
+			}
 		}
 		//add all the card's vertices to the board's graph
 		Set<CardAnchor> cardAnchors = new HashSet<>();
