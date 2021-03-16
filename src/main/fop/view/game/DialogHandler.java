@@ -24,7 +24,7 @@ import javax.swing.table.DefaultTableModel;
 public final class DialogHandler {
 	
 	/** Kann genutzt werden, um unerwünschte Dialoge während der Entwicklung auszublenden. */
-	private static final boolean DISABLE_DIALOGS = false;
+	private static final boolean DISABLE_DIALOGS = true;
 	
 	private final Component parent;
 	
@@ -79,7 +79,7 @@ public final class DialogHandler {
 	 */
 	private final void showGoalCardDialog(GoalCard goalCard) {
 		if (GameController.getActivePlayer().isComputer()) return;
-		Image img = CardImageReader.readImage(String.format("goal_%s", goalCard.getType().name().toLowerCase()));
+		Image img = CardImageReader.readImage(String.format("show_goal_%s", goalCard.getType().name().toLowerCase()));
 		JOptionPane.showMessageDialog(parent, new JLabel(new ImageIcon(scaleCardImage(img))), "Zielkarte", JOptionPane.PLAIN_MESSAGE, null);
 	}
 	
