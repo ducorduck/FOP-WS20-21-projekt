@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import fop.model.TeamColor;
+import static fop.model.TeamColor.*;
 import fop.model.cards.CardAnchor;
 import fop.model.cards.GoalCard;
 import fop.model.cards.PathCard;
@@ -21,6 +22,9 @@ import fop.model.graph.Graph;
  */
 public class Gameboard {
 	
+	private final Position[] goalCardPosition = new Position [3];
+	private final Position startCardPositionRED = Position.of(0,0);
+	private final Position startCardPositionBLUE = Position.of(16,0);
 	protected final Map<Position,PathCard> board = new HashMap<>();
 	protected final Graph<BoardAnchor> graph = new Graph<>();
 	
@@ -28,6 +32,9 @@ public class Gameboard {
 	 * Erstellt ein leeres Wegelabyrinth und platziert Start- sowie Zielkarten.
 	 */
 	public Gameboard() {
+		goalCardPosition[0] = Position.of(8,0);
+		goalCardPosition[1] = Position.of(8,-2);
+		goalCardPosition[2] = Position.of(8,2);
 		clear();
 	}
 	
@@ -37,6 +44,10 @@ public class Gameboard {
 	 */
 	public void printGraph() {
 		graph.toDotCode().forEach(System.out::println);
+	}
+
+	public Position getGoalCardPosition (int i) {
+		return goalCardPosition[i];
 	}
 	
 	/**
@@ -130,6 +141,23 @@ public class Gameboard {
 		checkGoalCards();
 	}
 	
+	public void placeCard (Position pos, PathCard card) {
+		placeCard(pos.x(),pos.y(), card);
+	}
+
+	public void placeStartCard(TeamColor color) {
+		if (color == RED) {
+			placeCard(startCardPositionRED, new StartCard(RED));
+		}
+		if (color == BLUE) {
+			placeCard(startCardPositionBLUE, new StartCard(RED));
+		}
+	}
+
+	public void placeGoalCard (int i, GoalCard goldCard) {
+		placeCard(goalCardPosition[i], goldCard);
+	}
+
 	/**
 	 * Prüft, ob eine Zielkarte erreichbar ist und dreht diese gegebenenfalls um.
 	 */

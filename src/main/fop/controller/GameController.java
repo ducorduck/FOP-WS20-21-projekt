@@ -39,9 +39,12 @@ public final class GameController {
 	private static final Stack<Card> drawDeck = new Stack<>();
 	private static final Stack<Card> discardPile = new Stack<>();
 	private static final Gameboard gameboard = new Gameboard();
+	private static final HashSet<PathCard> onBoardPathCard = new HashSet <PathCard> ();
 	
 	private static int activePlayer = -1;
 	private static Card selectedCard = null;
+
+	private static GoalCard[] allGoalCards = new GoalCard[3];
 	
 	
 	//////////
@@ -187,15 +190,15 @@ public final class GameController {
 	 * Initialisiert das Wegelabyrinth.
 	 */
 	private static void initMaze() {
-		gameboard.placeCard(0, 0, new StartCard(RED));
-		if (rolesCounter()[2] > 0) gameboard.placeCard(16,0 , new StartCard(BLUE));
+		gameboard.placeStartCard(RED);
+		if (rolesCounter()[2] > 0) gameboard.placeStartCard(BLUE);
 		List<GoalCard> goalCards = new LinkedList<>(List.of(new GoalCard(Type.Gold), new GoalCard(Type.Stone), new GoalCard(Type.Stone)));
 		Collections.shuffle(goalCards);
-		gameboard.placeCard(8, -2, goalCards.remove(0));
-		gameboard.placeCard(8, 0, goalCards.remove(0));
-		gameboard.placeCard(8, 2, goalCards.remove(0));
+		for (int i = 0; i < 3; i++) {
+			gameboard.placeGoalCard(i, goalCards.get(0));
+			allGoalCards[i] = goalCards.remove(0);
+		}
 	}
-	
 	
 	////////////
 	// GETTER //
@@ -238,6 +241,17 @@ public final class GameController {
 		return new ArrayList<>(discardPile);
 	}
 	
+	public static GoalCard getGoalCard(int i) {
+		return allGoalCards[i];
+	}
+
+	public static GoalCard [] getAllGoalCards() {
+		return allGoalCards;
+	}
+	
+	public static HashSet<PathCard> getAllOnBoardPathCards () {
+		return onBoardPathCard;
+	}
 	
 	//////////////
 	// GAMEPLAY //
@@ -389,8 +403,13 @@ public final class GameController {
 	public static void placeSelectedCardAt(int x, int y) {
 		gameboard.placeCard(x, y, (PathCard) selectedCard);
 		playSelectedCard();
+		onBoardPathCard.add((PathCard)selectedCard);
 		scorePoints(gameboard.getNumberOfAdjacentCards(x, y) + 1);
 		nextPlayer();
+	}
+
+	public static void placeSelectedCardAt(Position pos) {
+		placeSelectedCardAt(pos.x(),pos.y());
 	}
 	
 	/**
@@ -406,6 +425,7 @@ public final class GameController {
 		discardPile.add(oldCard);
 		discardPile.add(selectedCard);
 		playSelectedCard();
+		onBoardPathCard.remove(selectedCard);
 		scorePoints(2);
 		nextPlayer();
 	}
@@ -450,6 +470,10 @@ public final class GameController {
 		discardPile.add(selectedCard);
 		playSelectedCard();
 		nextPlayer();
+	}
+
+	public static void lookAtGoalCardWithSelectedCard (int i) {
+		lookAtGoalCardWithSelectedCard(allGoalCards[i]);
 	}
 	
 	/**

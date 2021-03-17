@@ -1,6 +1,7 @@
 package fop.model;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import fop.model.cards.*;
@@ -117,6 +118,29 @@ public class Player {
 	 */
 	public boolean hasBrokenTool(ToolType type) {
 		return getBrokenTool(type) != null;
+	}
+
+	public boolean canBeFixed(FixedToolCard card) {
+		boolean canFixed = false;
+		for (ActionCard actioncard : actionCards) {
+			if (!actioncard.isBrokenTool()) continue;
+			if (canBrokenToolBeFixed((BrokenToolCard)actioncard, card)) {
+				canFixed = true;
+				break;
+			}
+		}
+		return canFixed;
+	}
+
+	public LinkedList<BrokenToolCard> getAllBrokenToolCards (FixedToolCard fixCard) {
+		LinkedList<BrokenToolCard> brokenToolCards = new LinkedList<BrokenToolCard> ();
+		for (ActionCard actioncard : actionCards) {
+			if (!actioncard.isBrokenTool()) continue;
+			if (canBrokenToolBeFixed((BrokenToolCard)actioncard, fixCard)) {
+				brokenToolCards.add((BrokenToolCard)actioncard);
+			}
+		}
+		return brokenToolCards;
 	}
 	
 	/**
