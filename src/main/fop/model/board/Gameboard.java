@@ -130,6 +130,11 @@ public class Gameboard {
 		checkGoalCards();
 	}
 	
+
+	public void placeCard (Position pos, PathCard card) {
+		placeCard (pos.x(), pos.y(), card);
+	}
+
 	/**
 	 * Prüft, ob eine Zielkarte erreichbar ist und dreht diese gegebenenfalls um.
 	 */

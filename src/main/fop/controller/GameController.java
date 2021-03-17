@@ -14,6 +14,7 @@ import fop.model.ComputerPlayer;
 import fop.model.Player;
 import fop.model.Player.Role;
 import fop.model.ScoreEntry;
+import fop.model.TeamColor;
 import fop.model.board.Gameboard;
 import fop.model.board.Position;
 import fop.model.cards.*;
@@ -42,6 +43,12 @@ public final class GameController {
 	
 	private static int activePlayer = -1;
 	private static Card selectedCard = null;
+
+	private static final int numberOfGoalCard = 5;
+	private static final int cardsBetweenStartAndGoal = 8;
+	private static final int numberOfGoldCard = 2;
+	private static final int numberOfStoneCard = numberOfGoalCard - numberOfGoldCard;
+	private static final GoalCard[] allGoalCards = new GoalCard[numberOfGoalCard];
 	
 	
 	//////////
@@ -97,6 +104,10 @@ public final class GameController {
 		}.execute();
 	}
 	
+	/**
+	 * 
+	 * @return number of each roles
+	 */
 	public static int[] rolesCounter() {
 		int playerCount = players.size();
 		int saboteurCount, redGoldMinerCount, blueGoldMinerCount = 0;
@@ -187,13 +198,24 @@ public final class GameController {
 	 * Initialisiert das Wegelabyrinth.
 	 */
 	private static void initMaze() {
+
+		//Place Start card(s)
 		gameboard.placeCard(0, 0, new StartCard(RED));
-		if (rolesCounter()[2] > 0) gameboard.placeCard(16,0 , new StartCard(BLUE));
-		List<GoalCard> goalCards = new LinkedList<>(List.of(new GoalCard(Type.Gold), new GoalCard(Type.Stone), new GoalCard(Type.Stone)));
+		if (getNumberOfBlues() > 0) gameboard.placeCard(2 + 2*cardsBetweenStartAndGoal,0 , new StartCard(BLUE));
+		
+		//Place Goal cards
+		List<GoalCard> goalCards = new LinkedList<>();
+		for (int i = 0; i < numberOfGoldCard; i++) {
+			goalCards.add(new GoalCard(Type.Gold));
+		}
+		for (int i = 0; i < numberOfStoneCard; i++) {
+			goalCards.add(new GoalCard(Type.Stone));
+		}
 		Collections.shuffle(goalCards);
-		gameboard.placeCard(8, -2, goalCards.remove(0));
-		gameboard.placeCard(8, 0, goalCards.remove(0));
-		gameboard.placeCard(8, 2, goalCards.remove(0));
+		for (int i = 0; i < numberOfGoalCard; i++) {
+			gameboard.placeCard(getGoalCardPosition(i), goalCards.get(0));
+			allGoalCards[i] = goalCards.remove(0);
+		}
 	}
 	
 	
@@ -210,6 +232,16 @@ public final class GameController {
 		return players.get(activePlayer);
 	}
 	
+	public static Position getStartCard (TeamColor color) {
+		return color == RED? Position.of(0,0) : Position.of(2 + 2*cardsBetweenStartAndGoal,0);
+	}
+
+	public static Position getGoalCardPosition (int i) {
+		int x = 1 + cardsBetweenStartAndGoal;
+		int y = numberOfGoalCard - 1 - 2*i;
+		return Position.of(x,y);
+	}
+
 	public static Card getSelectedCard() {
 		return selectedCard;
 	}
@@ -238,7 +270,18 @@ public final class GameController {
 		return new ArrayList<>(discardPile);
 	}
 	
+	public static int getNumberOfSaboteurs () {
+		return rolesCounter()[0];
+	}
 	
+	public static int getNumberOfReds () {
+		return rolesCounter()[1];
+	}
+
+	public static int getNumberOfBlues() {
+		return rolesCounter()[2];
+	}
+
 	//////////////
 	// GAMEPLAY //
 	//////////////
@@ -249,7 +292,10 @@ public final class GameController {
 
         // Goldkarte wurde aufgedeckt -> Goldsucher gewinnen
         if (gameboard.isGoldCardVisible()) {
-            List<Position> positions = new LinkedList<>(List.of(Position.of(8, 2), Position.of(8, 0), Position.of(8, -2)));
+			List<Position> positions = new LinkedList<>();
+			for (int i = 0; i < numberOfGoalCard; i++) {
+				positions.add(getGoalCardPosition(i));
+			}
             int x = 0;
             int y = 0;
             for (Position pos : positions) {
