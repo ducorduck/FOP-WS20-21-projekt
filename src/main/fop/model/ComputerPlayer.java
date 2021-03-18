@@ -1,7 +1,9 @@
 package fop.model;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -10,11 +12,11 @@ import fop.model.board.Position;
 import fop.model.cards.BrokenToolCard;
 import fop.model.cards.Card;
 import fop.model.cards.FixedToolCard;
-import fop.model.cards.GoalCard;
 import fop.model.cards.PathCard;
 import fop.model.cards.GoalCard.Type;
 
 import javax.swing.SwingWorker;
+
 
 /***
  * 
@@ -23,15 +25,16 @@ import javax.swing.SwingWorker;
  */
 public class ComputerPlayer extends Player {
 
-	private LinkedList<Integer> possibleGoldCardPositions = new LinkedList<>();
-	private int goldCardPosition = -1;
+	private LinkedList<Integer> possibleGoldCardPositions = new LinkedList <Integer>();
+	private boolean goldCardDetected = false;
+	private Position targetPosition = GameController.getCentrerPostion();
+	
 	
 	public ComputerPlayer(String name) {
 		super(name);
 		for (int i = 0; i < GameController.getNumberOfGoalCard(); i++) {
-			possibleGoldCardPositions.add(i);
+			possibleGoldCardPositions.addFirst(i);
 		}
-		Collections.shuffle(possibleGoldCardPositions);
 		GameController.addPropertyChangeListener(GameController.NEXT_PLAYER, evt -> {
 			// skip if it is not the players turn
 			if (GameController.getActivePlayer() != this) return;
@@ -41,9 +44,9 @@ public class ComputerPlayer extends Player {
 				
 				@Override
 				protected Object doInBackground() throws Exception {
-					sleep(2000);
+					sleep(1000);
 					doAction();
-					sleep(2000);
+					sleep(1000);
 					return null;
 				}
 			}.execute();
@@ -67,11 +70,14 @@ public class ComputerPlayer extends Player {
 	
 	protected void selectCard(Card card) {
 		GameController.selectCard(card);
-		sleep(2000);
+		sleep(1000);
 	}
 
 	
 	private Card getTargetCard() {
+		goalCardAnalyse();
+		targetPosition = getPredictedGoldCardPosition();
+		System.out.println(name + " should go to " + targetPosition.toString());
 		Card targetCard = handCards.get((int) (Math.random() * handCards.size()));
 		return targetCard;
 	}
@@ -96,24 +102,74 @@ public class ComputerPlayer extends Player {
 	}
 
 	private int getGoalCardNo() {
-		if (possibleGoldCardPositions.isEmpty()) return -1;
-		return possibleGoldCardPositions.getFirst();
-	}
-
-	public void estimateGoldCardPosition(int i, GoalCard seenGoalCard) {
-		possibleGoldCardPositions.remove(Integer.valueOf(i));
-		if (seenGoalCard.getType() == Type.Gold) {
-			goldCardPosition = i;
-			possibleGoldCardPositions = new LinkedList<Integer>();
-		} else {
-			if (possibleGoldCardPositions.size() == GameController.getNumberOfGoldCard()) {
-				goldCardPosition = possibleGoldCardPositions.getFirst();
+		if (goldCardDetected) return -1;
+		int chosenNo = possibleGoldCardPositions.getFirst();
+		double optimise = (GameController.getNumberOfGoalCard()-1)/2;
+		for (int i : possibleGoldCardPositions) {
+			if (Math.abs(i-optimise) < Math.abs(chosenNo-optimise)) {
+				chosenNo = i;
 			}
 		}
-		if (goldCardPosition != -1) {
-			System.out.println("One possible gold card is " + goldCardPosition);
+		return chosenNo;
+	}
+
+	private void goalCardUpdate(int i) {
+		if (GameController.getGoalCardByNo(i).getType() == Type.Stone) {
+			possibleGoldCardPositions.remove(Integer.valueOf(i));
+		} else {
+			goldCardDetected = true;
+			possibleGoldCardPositions = new LinkedList<>(Arrays.asList(i));
+			System.out.println(name + " knew card " + i + " is a gold card");
 		}
 	}
+
+	public void goalCardAnalyse() {
+		if (!goldCardDetected) {
+			for (int i = 0; i < GameController.getNumberOfGoalCard(); i++) {
+				if ((!GameController.getGoalCardByNo(i).isCovered()) && GameController.getGoalCardByNo(i).getType() == Type.Stone) {
+					possibleGoldCardPositions.remove(Integer.valueOf(i));
+				} 
+			}
+			if (possibleGoldCardPositions.size() <= GameController.getNumberOfGoldCard()) {
+				goldCardDetected = true;
+				//int i = GameController.getPositionClosestToCenter(possibleGoldCardPositions);
+				//System.out.println(name + " knew card " + i + " is a gold card");
+				System.out.print(name + "knew ");
+				for (int i = 0; i < possibleGoldCardPositions.size() - 1; i++) {
+					System.out.print(possibleGoldCardPositions.get(i) + ", ");
+				}
+				System.out.print("and " + possibleGoldCardPositions.getLast() + "is/are gold");
+			}
+		}
+	}
+
+	private Position getPredictedGoldCardPosition() {
+		if (goldCardDetected) {
+			int chosenNo = possibleGoldCardPositions.getFirst();
+			double optimise = (GameController.getNumberOfGoalCard()-1)/2;
+			for (int i : possibleGoldCardPositions) {
+				if (Math.abs(i-optimise) < Math.abs(chosenNo-optimise)) {
+					chosenNo = i;
+				}
+			}
+			return GameController.getGoalCardPosition(chosenNo);
+		} else {
+			int size = possibleGoldCardPositions.size();
+			if (size % 2 != 0) {
+				int chosenNo = possibleGoldCardPositions.get((size-1)/2);
+				return GameController.getGoalCardPosition(chosenNo);
+			} else {
+				int chosenNo1 = possibleGoldCardPositions.get(size/2);
+				int chosenNo2 = possibleGoldCardPositions.get(size/2-1);
+				Position pos1 = GameController.getGoalCardPosition(chosenNo1);
+				Position pos2 = GameController.getGoalCardPosition(chosenNo2);
+				int x = pos1.x();
+				int y = (pos1.y() + pos2.y())/2;
+				return Position.of(x,y);
+			}
+		}
+	}
+
 
 	private Position getTargetRockfall(LinkedList<Position> destroyableCards) {
 		if (destroyableCards.isEmpty()) return null;
@@ -121,8 +177,19 @@ public class ComputerPlayer extends Player {
 		return destroyableCards.getFirst();
 	}
 
-	private Position getPredictedGoldCardPosition() {
-		return goldCardPosition != -1 ? GameController.getGoalCardPosition(goldCardPosition) : GameController.getCentrerPostion();
+	private Position getTargetPosition(Set<Position> placeablePosition) {
+		if (placeablePosition.size() == 0) return null;
+		int item = new Random().nextInt(placeablePosition.size());
+		int i = 0;
+        Position pos = null;
+		for (Position posi : placeablePosition) {
+			if (i == item) {
+				pos = posi;
+				break;
+			}
+			i++;
+		}
+		return pos;
 	}
 
 	/**
@@ -180,9 +247,9 @@ public class ComputerPlayer extends Player {
 			if (i == -1) {
 				GameController.discardSelectedCard();
 			} else {
-			estimateGoldCardPosition(i, GameController.getGoalCardByNo(i));
-			GameController.lookAtGoalCardWithSelectedCard(GameController.getGoalCardByNo(i));
-			//GameController.placeSelectedCardAt(GameController.getGoalCardPosition(i));    //WRONG CODE
+				System.out.println(name + " has seen card " + i + ": " + GameController.getGoalCardByNo(i).getType().toString());
+				goalCardUpdate(i);
+				GameController.lookAtGoalCardWithSelectedCard(GameController.getGoalCardByNo(i));
 			}
 			return;
 		}
@@ -202,8 +269,15 @@ public class ComputerPlayer extends Player {
 			if (hasBrokenTool()) {
 				GameController.discardSelectedCard();
 			} else {
-				Set<Position> placeablePosition = GameController.getAllPlaceablePosition((PathCard)card);
+				Position targetPosition = getTargetPosition(GameController.getAllPlaceablePosition((PathCard)card));
+				if (targetPosition == null) {
+					GameController.discardSelectedCard();
+				}
+				else {
+					GameController.placeSelectedCardAt(targetPosition);
+				}
 			}
+			return;
 		}
 		
 		// werfe Karte ab

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import fop.io.ActionCardReader;
 import fop.io.PathCardReader;
@@ -45,7 +46,7 @@ public final class GameController {
 	private static Card selectedCard = null;
 
 	private static final int numberOfGoalCard = 3;
-	private static final int cardsBetweenStartAndGoal = 7;
+	private static final int cardsBetweenStartAndGoal = 4;
 	private static final int numberOfGoldCard = 1;
 	private static final GoalCard[] allGoalCards = new GoalCard[numberOfGoalCard];
 	
@@ -356,6 +357,8 @@ public final class GameController {
     }
 
 
+
+
 	//////////////
 	// GAMEPLAY //
 	//////////////
@@ -379,10 +382,12 @@ public final class GameController {
                     y = pos.y();
                 }
             }
+			List <Player> goldMinerWinners = new ArrayList<Player>();
             if (gameboard.existsPathFromStartCard(x, y, RED))
-                return players.stream().filter(p -> p.getRole() == Player.Role.RED_GOLD_MINER).collect(Collectors.toList());
-            else
-                return players.stream().filter(p -> p.getRole() == Player.Role.BLUE_GOLD_MINER).collect(Collectors.toList());
+                goldMinerWinners.addAll(players.stream().filter(p -> p.getRole() == Player.Role.RED_GOLD_MINER).collect(Collectors.toList()));
+            if (gameboard.existsPathFromStartCard(x, y, BLUE))
+				goldMinerWinners.addAll(players.stream().filter(p -> p.getRole() == Player.Role.BLUE_GOLD_MINER).collect(Collectors.toList()));
+			return goldMinerWinners;
         }
 
         // keine Karten mehr übrig -> Saboteure gewinnen

@@ -78,7 +78,24 @@ public final class DialogHandler {
 	 * @param goalCard die zu zeigende Zielkarte
 	 */
 	private final void showGoalCardDialog(GoalCard goalCard) {
-		if (GameController.getActivePlayer().isComputer()) return;
+		if (GameController.getActivePlayer().isComputer()) {
+			Image img = CardImageReader.readImage("show_goal_by_robot");
+			JOptionPane message = new JOptionPane(new JLabel(new ImageIcon(scaleCardImage(img))), JOptionPane.PLAIN_MESSAGE);
+			final JDialog dialog = message.createDialog("ZielKarte");
+			dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+			new Thread(new Runnable() {
+			  @Override
+			  public void run() {
+				try {
+				  Thread.sleep(1000);
+				} catch (InterruptedException e) {
+				}
+				dialog.setVisible(false);
+			  }
+			}).start();
+			dialog.setVisible(true);
+			return;	
+		}
 		Image img = CardImageReader.readImage(String.format("show_goal_%s", goalCard.getType().name().toLowerCase()));
 		JOptionPane.showMessageDialog(parent, new JLabel(new ImageIcon(scaleCardImage(img))), "Zielkarte", JOptionPane.PLAIN_MESSAGE, null);
 	}
