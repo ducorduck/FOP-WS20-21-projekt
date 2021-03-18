@@ -44,10 +44,9 @@ public final class GameController {
 	private static int activePlayer = -1;
 	private static Card selectedCard = null;
 
-	private static final int numberOfGoalCard = 5;
-	private static final int cardsBetweenStartAndGoal = 8;
-	private static final int numberOfGoldCard = 2;
-	private static final int numberOfStoneCard = numberOfGoalCard - numberOfGoldCard;
+	private static final int numberOfGoalCard = 3;
+	private static final int cardsBetweenStartAndGoal = 7;
+	private static final int numberOfGoldCard = 1;
 	private static final GoalCard[] allGoalCards = new GoalCard[numberOfGoalCard];
 	
 	
@@ -208,7 +207,7 @@ public final class GameController {
 		for (int i = 0; i < numberOfGoldCard; i++) {
 			goalCards.add(new GoalCard(Type.Gold));
 		}
-		for (int i = 0; i < numberOfStoneCard; i++) {
+		for (int i = 0; i < getNumberOfStoneCard(); i++) {
 			goalCards.add(new GoalCard(Type.Stone));
 		}
 		Collections.shuffle(goalCards);
@@ -242,6 +241,10 @@ public final class GameController {
 		return Position.of(x,y);
 	}
 
+	public static GoalCard getGoalCardByNo(int i) {
+		return allGoalCards[i];
+	}
+
 	public static Card getSelectedCard() {
 		return selectedCard;
 	}
@@ -254,6 +257,25 @@ public final class GameController {
 		return gameboard.getBoard().keySet();
 	}
 	
+	public static LinkedList<Position> getPathCardPositions() {
+		LinkedList<Position> pathCardPositions = new LinkedList<Position>();
+		for (Position pos : gameboard.getBoard().keySet()) {
+			boolean pass = false;
+			if (pos.equals(getStartCard(RED)) || pos.equals(getStartCard(BLUE))) continue;
+			for (int i = 0; i < numberOfGoalCard; i++) {
+				if (pos.equals(getGoalCardPosition(i))) {
+					pass = true;
+					break;
+				}
+			}
+			if (pass) {
+				continue;
+			}
+			pathCardPositions.add(pos);
+		}
+		return pathCardPositions;
+	}
+
 	public static PathCard getCardAt(Position pos) {
 		return gameboard.getBoard().getOrDefault(pos, null);
 	}
@@ -281,6 +303,58 @@ public final class GameController {
 	public static int getNumberOfBlues() {
 		return rolesCounter()[2];
 	}
+
+	public static int getNumberOfGoalCard() {
+		return numberOfGoalCard;
+	}
+
+	public static int getNumberOfGoldCard() {
+		return numberOfGoldCard;
+	}
+	
+	public static int getNumberOfStoneCard() {
+		return numberOfGoalCard - numberOfGoldCard;
+	}
+	
+	public static Position getCentrerPostion() {
+		return Position.of(1+cardsBetweenStartAndGoal,0);
+	}
+	
+	public static Set<Position> getAllPlaceablePosition(PathCard card) {
+        //init result var
+        Set<Position> result = new HashSet<>();
+        //get map of board in game
+        Map<Position, PathCard> board = getGameboard().getBoard();
+        for (Position pos : board.keySet()) {
+            PathCard pathCard = board.get(pos);
+            //ignor all the covered goal card
+            if (pathCard.isGoalCard()) {
+                GoalCard goldCard = (GoalCard) pathCard;
+                if (goldCard.isCovered())
+                    continue;
+            }
+            //add all card anchor of this path card to a list
+            List<CardAnchor> anchors = new ArrayList<>();
+            for (CardAnchor anchor : pathCard.getGraph().vertices()) {
+                anchors.add(anchor);
+            }
+            for (CardAnchor anchor : anchors) {
+                Position adjacentPosition = anchor.getAdjacentPosition(pos);
+                if (canCardBePlacedAt(adjacentPosition.x(), adjacentPosition.y(), card))
+                    result.add(adjacentPosition);
+            }
+        }
+        return result;
+    }
+
+    public static Set<Position> getAllPlaceablePosition(PathCard... pathCards){
+        Set<Position> result = new HashSet<>();
+        for (PathCard pathCard : pathCards) {
+            result.addAll(getAllPlaceablePosition(pathCard));
+        }
+        return result;
+    }
+
 
 	//////////////
 	// GAMEPLAY //
@@ -439,6 +513,11 @@ public final class GameController {
 		nextPlayer();
 	}
 	
+	
+	public static void placeSelectedCardAt(Position pos) {
+		placeSelectedCardAt(pos.x(), pos.y());
+	}
+
 	/**
 	 * Zerstört die Wegekarte an der übergebenen Position mit der ausgewählten Karte.<br>
 	 * Legt die zerstörte und die ausgewählte Karte auf den Ablagestapel.<br>
@@ -455,7 +534,7 @@ public final class GameController {
 		scorePoints(2);
 		nextPlayer();
 	}
-	
+
 	/**
 	 * Repariert die Karte mit dem zerbrochenen Werkzeug mit der ausgewählten Karte.<br>
 	 * Legt die Karte mit dem zerbrochenen Werkzeug und die ausgewählte Karte auf den Ablagestapel.<br>
