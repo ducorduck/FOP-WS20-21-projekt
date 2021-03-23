@@ -14,11 +14,13 @@ import fop.model.ComputerPlayer;
 import fop.model.Player;
 import fop.model.Player.Role;
 import fop.model.ScoreEntry;
+import fop.model.TeamColor;
 import fop.model.board.Gameboard;
 import fop.model.board.Position;
 import fop.model.cards.*;
 import fop.model.cards.GoalCard.Type;
 import javax.swing.SwingWorker;
+import static fop.model.TeamColor.*;
 
 /**
  * 
@@ -41,6 +43,11 @@ public final class GameController {
 	
 	private static int activePlayer = -1;
 	private static Card selectedCard = null;
+
+	private static final int numberOfGoalCard = 3;
+	private static final int cardsBetweenStartAndGoal = 6;
+	private static final int numberOfGoldCard = 1;
+	private static final GoalCard[] allGoalCards = new GoalCard[numberOfGoalCard];
 	
 	
 	//////////
@@ -96,26 +103,33 @@ public final class GameController {
 		}.execute();
 	}
 	
+	public static int getMaxRoleNumber (Role role) {
+		int playerCount = players.size();
+		if (role == Role.SABOTEUR) {
+			return playerCount <= 10 ? List.of(0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3).get(playerCount) : playerCount - 2 * (1 + playerCount / 3);
+		} 
+		else if (role == Role.BLUE_GOLD_MINER) {
+			return playerCount <= 10 ? List.of(0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4).get(playerCount) : 1 + playerCount / 3;
+		} 
+		else { //role == Role.RED_GOLD_MINER
+			return playerCount <= 10 ? List.of(0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4).get(playerCount) : 1 + playerCount / 3;
+		}
+	}
+
+
 	/**
 	 * Setzt die Rollen der Spieler.
 	 */
 	public static void assignRoles() {
 		if (players.isEmpty()) return;
-		int playerCount = players.size();
-		
-		int saboteurCount = playerCount <= 10 ? List.of(0, 1, 1, 1, 2, 2, 3, 3, 3, 4).get(playerCount - 1) : playerCount / 2 - 1;
-		int goldMinerCount = playerCount <= 10 ? List.of(1, 1, 3, 4, 4, 5, 5, 6, 7, 7).get(playerCount - 1) : playerCount - saboteurCount + 1;
-		int thirdRoleCount = playerCount <= 10 ? List.of(0, 1, 1, 2, 2, 3, 3, 3, 4, 4).get(playerCount - 1) : playerCount / 2;
 		
 		List<Role> roles = new LinkedList<>();
-		for (int i = 0; i < saboteurCount; i++)
+		for (int i = 0; i < getMaxRoleNumber(Role.SABOTEUR); i++)
 			roles.add(Role.SABOTEUR);
-		for (int i = 0; i < goldMinerCount; i++)
-			roles.add(Role.GOLD_MINER);
-		if (Role.values().length > 2) {
-			Role thirdRole = Arrays.stream(Role.values()).filter(r -> r != Role.SABOTEUR && r != Role.GOLD_MINER).findFirst().get();
-			for (int i = 0; i < thirdRoleCount; i++)
-				roles.add(thirdRole);
+		for (int i = 0; i < getMaxRoleNumber(Role.RED_GOLD_MINER); i++)
+			roles.add(Role.RED_GOLD_MINER);
+		for (int i = 0; i < getMaxRoleNumber(Role.BLUE_GOLD_MINER); i++) {
+			roles.add(Role.BLUE_GOLD_MINER);
 		}
 		
 		Collections.shuffle(roles);
@@ -158,7 +172,7 @@ public final class GameController {
 		// add cards to deck
 		drawDeck.addAll(pathCards);
 	}
-	
+
 	/**
 	 * Verteilt die Startkarten an alle Spieler.
 	 */
@@ -174,12 +188,30 @@ public final class GameController {
 	 * Initialisiert das Wegelabyrinth.
 	 */
 	private static void initMaze() {
-		gameboard.placeCard(0, 0, new StartCard());
-		List<GoalCard> goalCards = new LinkedList<>(List.of(new GoalCard(Type.Gold), new GoalCard(Type.Stone), new GoalCard(Type.Stone)));
+
+		boolean hasBlue = false;
+		for (Player player :players) {
+			if (player.getRole() == Role.BLUE_GOLD_MINER)
+				hasBlue = true;
+		}
+		//Place Start card(s)
+		gameboard.placeCard(0, 0, new StartCard(RED));
+		if (hasBlue) 
+			gameboard.placeCard(2 + 2*cardsBetweenStartAndGoal,0 , new StartCard(BLUE));
+		
+		//Place Goal cards
+		List<GoalCard> goalCards = new LinkedList<>();
+		for (int i = 0; i < numberOfGoldCard; i++) {
+			goalCards.add(new GoalCard(Type.Gold));
+		}
+		for (int i = 0; i < getNumberOfStoneCard(); i++) {
+			goalCards.add(new GoalCard(Type.Stone));
+		}
 		Collections.shuffle(goalCards);
-		gameboard.placeCard(8, -2, goalCards.remove(0));
-		gameboard.placeCard(8, 0, goalCards.remove(0));
-		gameboard.placeCard(8, 2, goalCards.remove(0));
+		for (int i = 0; i < numberOfGoalCard; i++) {
+			gameboard.placeCard(getGoalCardPosition(i), goalCards.get(0));
+			allGoalCards[i] = goalCards.remove(0);
+		}
 	}
 	
 	
@@ -196,6 +228,20 @@ public final class GameController {
 		return players.get(activePlayer);
 	}
 	
+	public static Position getStartCard (TeamColor color) {
+		return color == RED? Position.of(0,0) : Position.of(2 + 2*cardsBetweenStartAndGoal,0);
+	}
+
+	public static Position getGoalCardPosition (int i) {
+		int x = 1 + cardsBetweenStartAndGoal;
+		int y = numberOfGoalCard - 1 - 2*i;
+		return Position.of(x,y);
+	}
+
+	public static GoalCard getGoalCardByNo(int i) {
+		return allGoalCards[i];
+	}
+
 	public static Card getSelectedCard() {
 		return selectedCard;
 	}
@@ -208,6 +254,25 @@ public final class GameController {
 		return gameboard.getBoard().keySet();
 	}
 	
+	public static LinkedList<Position> getPathCardPositions() {
+		LinkedList<Position> pathCardPositions = new LinkedList<Position>();
+		for (Position pos : gameboard.getBoard().keySet()) {
+			boolean pass = false;
+			if (pos.equals(getStartCard(RED)) || pos.equals(getStartCard(BLUE))) continue;
+			for (int i = 0; i < numberOfGoalCard; i++) {
+				if (pos.equals(getGoalCardPosition(i))) {
+					pass = true;
+					break;
+				}
+			}
+			if (pass) {
+				continue;
+			}
+			pathCardPositions.add(pos);
+		}
+		return pathCardPositions;
+	}
+
 	public static PathCard getCardAt(Position pos) {
 		return gameboard.getBoard().getOrDefault(pos, null);
 	}
@@ -223,78 +288,155 @@ public final class GameController {
 	public static List<Card> getDiscardPile() {
 		return new ArrayList<>(discardPile);
 	}
+
+	public static int getNumberOfGoalCard() {
+		return numberOfGoalCard;
+	}
+
+	public static int getNumberOfGoldCard() {
+		return numberOfGoldCard;
+	}
 	
+	public static int getNumberOfStoneCard() {
+		return numberOfGoalCard - numberOfGoldCard;
+	}
 	
+	public static Position getCentrerPostion() {
+		return Position.of(1+cardsBetweenStartAndGoal,0);
+	}
+	
+	public static Set<Position> getAllPlaceablePosition(PathCard card) {
+        //init result var
+        Set<Position> result = new HashSet<>();
+        //get map of board in game
+        Map<Position, PathCard> board = getGameboard().getBoard();
+        for (Position pos : board.keySet()) {
+            PathCard pathCard = board.get(pos);
+            //ignor all the covered goal card
+            if (pathCard.isGoalCard()) {
+                GoalCard goldCard = (GoalCard) pathCard;
+                if (goldCard.isCovered())
+                    continue;
+            }
+            //add all card anchor of this path card to a list
+            List<CardAnchor> anchors = new ArrayList<>();
+            for (CardAnchor anchor : pathCard.getGraph().vertices()) {
+                anchors.add(anchor);
+            }
+            for (CardAnchor anchor : anchors) {
+                Position adjacentPosition = anchor.getAdjacentPosition(pos);
+                if (canCardBePlacedAt(adjacentPosition.x(), adjacentPosition.y(), card))
+                    result.add(adjacentPosition);
+            }
+        }
+        return result;
+    }
+
+    public static Set<Position> getAllPlaceablePosition(PathCard... pathCards){
+        Set<Position> result = new HashSet<>();
+        for (PathCard pathCard : pathCards) {
+            result.addAll(getAllPlaceablePosition(pathCard));
+        }
+        return result;
+    }
+
+
+
+
 	//////////////
 	// GAMEPLAY //
 	//////////////
 	
-	/**
-	 * Gibt die Gewinner des Spiels zurück.
-	 * @return die Gewinner; oder null falls das Spiel noch nicht beendet ist
-	 */
 	public static List<Player> getWinners() {
-		// TODO Aufgabe 4.3.2
-		// Sie dürfen diese Methode vollständig umschreiben und den vorhandenen Code entfernen.
-		
-		// Goldkarte wurde aufgedeckt -> Goldsucher gewinnen
-		if (gameboard.isGoldCardVisible())
-			return players.stream().filter(p -> p.getRole() == Player.Role.GOLD_MINER).collect(Collectors.toList());
-		
-		// keine Karten mehr übrig -> Saboteure gewinnen
-		if (drawDeck.isEmpty() && players.stream().allMatch(p -> p.getAllHandCards().isEmpty()))
-			return players.stream().filter(p -> p.getRole() == Player.Role.SABOTEUR).collect(Collectors.toList());
-		
-		// noch kein Gewinner
-		return null;
-	}
-	
+        // TODO Aufgabe 4.3.2
+        // Sie dürfen diese Methode vollständig umschreiben und den vorhandenen Code entfernen.
+
+        // Goldkarte wurde aufgedeckt -> Goldsucher gewinnen
+        if (gameboard.isGoldCardVisible()) {
+			List<Position> positions = new LinkedList<>();
+			for (int i = 0; i < numberOfGoalCard; i++) {
+				positions.add(getGoalCardPosition(i));
+			}
+            int x = 0;
+            int y = 0;
+            for (Position pos : positions) {
+                GoalCard goldcard = (GoalCard) gameboard.getBoard().get(pos);
+                if (!goldcard.isCovered()) {
+                    x = pos.x();
+                    y = pos.y();
+                }
+            }
+			List <Player> goldMinerWinners = new ArrayList<Player>();
+            if (gameboard.existsPathFromStartCard(x, y, RED))
+                goldMinerWinners.addAll(players.stream().filter(p -> p.getRole() == Player.Role.RED_GOLD_MINER).collect(Collectors.toList()));
+            if (gameboard.existsPathFromStartCard(x, y, BLUE))
+				goldMinerWinners.addAll(players.stream().filter(p -> p.getRole() == Player.Role.BLUE_GOLD_MINER).collect(Collectors.toList()));
+			return goldMinerWinners;
+        }
+
+        // keine Karten mehr übrig -> Saboteure gewinnen
+        if (drawDeck.isEmpty() && players.stream().allMatch(p -> p.getAllHandCards().isEmpty()))
+            return players.stream().filter(p -> p.getRole() == Player.Role.SABOTEUR).collect(Collectors.toList());
+
+        // noch kein Gewinner
+        return null;
+    }
+
 	/**
 	 * Beendet den Zug des aktuellen aktiven Spielers und startet den Zug des nächsten Spielers.<br>
 	 * Dabei zieht der alte aktive Spieler eine Karte nach.
 	 */
 	private static void nextPlayer() {
-		// Spielende prüfen
-		List<Player> winners = getWinners();
-		if (winners != null) {
-			// Siegpunkte verteilen
-			for (Player player : winners)
-				player.scorePoints(20);
-			// Highscores speichern
-			LocalDateTime now = LocalDateTime.now();
-			for (Player player : players) {
-				ScoreEntry scoreEntry = new ScoreEntry(player.getName(), now, player.getScore());
-				ScoreEntryIO.addScoreEntry(scoreEntry);
-			}
-			// Spielende signalisieren
-			selectCard(null);
-			activePlayer = -1;
-			firePropertyChange(NEXT_PLAYER);
-			firePropertyChange(GAME_OVER, winners);
-			return;
-		}
-		
-		// Karte nachziehen
-		drawCard();
-		
-		// der nächste Spieler ist am Zug
-		int nextActivePlayer = activePlayer + 1;
-		if (nextActivePlayer == players.size()) nextActivePlayer = 0;
-		
-		// alle Karten verstecken
-		selectCard(null);
-		activePlayer = -1;
-		firePropertyChange(NEXT_PLAYER);
-		
-		// nächsten Spieler informieren
-		firePropertyChange(INFORM_NEXT_PLAYER, players.get(nextActivePlayer));
-		
-		// Karten des aktiven Spielers zeigen
-		activePlayer = nextActivePlayer;
-		firePropertyChange(NEXT_PLAYER);
-		if (getActivePlayer().getAllHandCards().isEmpty())
-			firePropertyChange(ACTIVE_PLAYER_NO_HAND_CARDS);
-	}
+        // Spielende prüfen
+        List<Player> winners = getWinners();
+        if (winners != null) {
+            if (winners.get(0).getRole() != Role.SABOTEUR) {
+                getActivePlayer().scorePoints(5);
+            }
+            // Siegpunkte verteilen
+            for (Player player : winners) {
+                final int winPoints = 20;
+                if (player.getRole() == Role.SABOTEUR)
+                    player.scorePoints(winPoints / 2);
+                player.scorePoints(winPoints);
+            }
+            // Highscores speichern
+            LocalDateTime now = LocalDateTime.now();
+            for (Player player : players) {
+                ScoreEntry scoreEntry = new ScoreEntry(player.getName(), now, player.getScore());
+                ScoreEntryIO.addScoreEntry(scoreEntry);
+            }
+            // Spielende signalisieren
+            selectCard(null);
+            activePlayer = -1;
+            firePropertyChange(NEXT_PLAYER);
+            firePropertyChange(GAME_OVER, winners);
+            return;
+        }
+
+        // Karte nachziehen
+        drawCard();
+
+        // der nächste Spieler ist am Zug
+        int nextActivePlayer = activePlayer + 1;
+        if (nextActivePlayer == players.size()) nextActivePlayer = 0;
+
+        // alle Karten verstecken
+        selectCard(null);
+        activePlayer = -1;
+        firePropertyChange(NEXT_PLAYER);
+
+        // nächsten Spieler informieren
+        firePropertyChange(INFORM_NEXT_PLAYER, players.get(nextActivePlayer));
+
+        // Karten des aktiven Spielers zeigen
+        activePlayer = nextActivePlayer;
+        firePropertyChange(NEXT_PLAYER);
+        if (getActivePlayer().getAllHandCards().isEmpty())
+            firePropertyChange(ACTIVE_PLAYER_NO_HAND_CARDS);
+    }
+
+	
 	
 	/**
 	 * Der übergebene Spieler zieht eine Karte vom Nachziehstapel.
@@ -364,6 +506,11 @@ public final class GameController {
 		nextPlayer();
 	}
 	
+	
+	public static void placeSelectedCardAt(Position pos) {
+		placeSelectedCardAt(pos.x(), pos.y());
+	}
+
 	/**
 	 * Zerstört die Wegekarte an der übergebenen Position mit der ausgewählten Karte.<br>
 	 * Legt die zerstörte und die ausgewählte Karte auf den Ablagestapel.<br>
@@ -373,14 +520,18 @@ public final class GameController {
 	 * @see Gameboard#removeCard(int, int)
 	 */
 	public static void destroyCardWithSelectedCardAt(int x, int y) {
-		PathCard oldCard = gameboard.removeCard(x, y);
-		discardPile.add(oldCard);
-		discardPile.add(selectedCard);
-		playSelectedCard();
-		scorePoints(2);
-		nextPlayer();
-	}
-	
+        PathCard oldCard = gameboard.removeCard(x, y);
+        discardPile.add(oldCard);
+        discardPile.add(selectedCard);
+        playSelectedCard();
+        if (getActivePlayer().getRole() == Role.SABOTEUR && players.size() > 2)
+            scorePoints(3);
+        else
+            scorePoints(2);
+        nextPlayer();
+    }
+
+
 	/**
 	 * Repariert die Karte mit dem zerbrochenen Werkzeug mit der ausgewählten Karte.<br>
 	 * Legt die Karte mit dem zerbrochenen Werkzeug und die ausgewählte Karte auf den Ablagestapel.<br>
@@ -394,7 +545,8 @@ public final class GameController {
 		discardPile.add(brokenToolCard);
 		discardPile.add(selectedCard);
 		playSelectedCard();
-		scorePoints(2);
+		if (getActivePlayer().getRole() != Role.SABOTEUR) scorePoints(3); 
+		else scorePoints(2);
 		nextPlayer();
 	}
 	
@@ -404,11 +556,14 @@ public final class GameController {
 	 * @param player der Spieler, dessen Werkzeug zerstört wird
 	 */
 	public static void breakToolWithSelectedCard(Player player) {
-		player.breakTool((BrokenToolCard) selectedCard);
-		playSelectedCard();
-		scorePoints(2);
-		nextPlayer();
-	}
+        player.breakTool((BrokenToolCard) selectedCard);
+        playSelectedCard();
+        if (getActivePlayer().getRole() == Role.SABOTEUR && players.size() > 2)
+            scorePoints(3);
+        else
+            scorePoints(2);
+        nextPlayer();
+    }
 	
 	/**
 	 * Schaut die übergebene Zielkarte an.<br>

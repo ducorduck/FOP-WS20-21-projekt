@@ -121,5 +121,9 @@ public class PathCard extends Card {
 		if (rotated != other.rotated) return false;
 		return true;
 	}
+
+	public boolean isBlockPathCard() {
+		return graph.hasNoEdgeVertices();
+	}
 	
 }

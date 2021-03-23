@@ -7,9 +7,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import fop.model.TeamColor;
 import fop.model.cards.CardAnchor;
 import fop.model.cards.GoalCard;
 import fop.model.cards.PathCard;
+import fop.model.cards.StartCard;
 import fop.model.graph.Graph;
 
 /**
@@ -75,6 +77,11 @@ public class Gameboard {
 						}
 					}
 				}
+				for(CardAnchor anchor: goalAnchors) {
+					BoardAnchor adjacentAnchor = BoardAnchor.of(anchor.getAdjacentPosition(Position.of(x, y)), anchor.getOppositeAnchor());
+						if(graph.hasVertex(adjacentAnchor)) 
+							graph.addEdge(BoardAnchor.of(pos, anchor), adjacentAnchor);					
+				}
 			}
 		}
 		//add all the card's vertices to the board's graph
@@ -123,6 +130,11 @@ public class Gameboard {
 		checkGoalCards();
 	}
 	
+
+	public void placeCard (Position pos, PathCard card) {
+		placeCard (pos.x(), pos.y(), card);
+	}
+
 	/**
 	 * Prüft, ob eine Zielkarte erreichbar ist und dreht diese gegebenenfalls um.
 	 */
@@ -319,4 +331,41 @@ public class Gameboard {
 		return (int) board.keySet().stream().filter(pos -> neighborPositions.contains(pos)).count();
 	}
 	
+	public boolean existsPathFromStartCard(int x, int y, TeamColor color) {
+        // TODO Aufgabe 4.1.7
+        Position thisPos = Position.of(x, y);
+        //the set of all the anchors adjacent to the given position
+        Set<BoardAnchor> adjAnchors = new HashSet<>();
+        for(CardAnchor anchor : CardAnchor.values()){
+            BoardAnchor boardanchor = BoardAnchor.of(anchor.getAdjacentPosition(thisPos), anchor.getOppositeAnchor());
+            adjAnchors.add(boardanchor);
+        }
+        for(Position pos : board.keySet()) {
+            //get the startcards
+            if(board.get(pos).isStartCard()) {
+                StartCard startcard = (StartCard) board.get(pos);
+                if (startcard.getColor() == color) {
+                    //get the start card's anchors
+                    Set<BoardAnchor> startAnchors = new HashSet<>();
+                    for(BoardAnchor anchor : graph.vertices()) {
+                        if (anchor.x() == pos.x() && anchor.y() == pos.y()) {
+                            startAnchors.add(anchor);
+                        }
+                    }
+                    //check if there exists a path to any of the anchors adjacent to the given position from any start card
+                    for(BoardAnchor start : startAnchors) {
+                        for(BoardAnchor end : adjAnchors) {
+                            if(graph.hasPath(start, end)) return true;
+                        }
+                    }
+                }
+            }
+        }
+        // die folgende Zeile entfernen und durch den korrekten Wert ersetzen
+        return false;
+    }
+
+	public Graph <BoardAnchor> getGraph() {
+		return graph;
+	}
 }

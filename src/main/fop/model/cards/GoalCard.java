@@ -6,6 +6,8 @@ import static fop.model.cards.CardAnchor.right;
 import static fop.model.cards.CardAnchor.top;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -63,16 +65,17 @@ public final class GoalCard extends PathCard {
 	public void generateGraph(Predicate<GoalCard> doesCardMatchItsNeighbors) {
 		switch (type) {
 			case Stone:
-				List<CardAnchor[]> possibilities = List.of(
-						new CardAnchor[] {left, top},
-						new CardAnchor[] {left, bottom},
-						new CardAnchor[] {top, bottom},
-						new CardAnchor[] {left, right},
-						new CardAnchor[] {top},
-						new CardAnchor[] {left},
-						new CardAnchor[] {left, top, bottom},
-						new CardAnchor[] {left, right, bottom},
-						new CardAnchor[] {left, top, right, bottom});
+				LinkedList<CardAnchor[]> possibilities = new LinkedList<CardAnchor[]>();
+				possibilities.add(new CardAnchor[] {left, top});
+				possibilities.add(new CardAnchor[] {left, bottom});
+				possibilities.add(new CardAnchor[] {top, bottom});
+				possibilities.add(new CardAnchor[] {left, right});
+				possibilities.add(new CardAnchor[] {top});
+				possibilities.add(new CardAnchor[] {left});
+				possibilities.add(new CardAnchor[] {left, top, bottom});
+				possibilities.add(new CardAnchor[] {left, right, bottom});
+				possibilities.add(new CardAnchor[] {left, top, right, bottom});
+				Collections.shuffle(possibilities);
 				// try all possibilities
 				for (CardAnchor[] possibility : possibilities) {
 					// normal rotation

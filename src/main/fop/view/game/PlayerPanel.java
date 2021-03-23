@@ -315,7 +315,7 @@ public class PlayerPanel extends JPanel implements MouseListener, MouseMotionLis
 			}
 			
 			if (mouseHoveringRole) switch (player.getRole()) {
-				case GOLD_MINER:
+				case RED_GOLD_MINER:
 					return "<html>Du bist Goldsucher.<br>Dein Ziel ist es, schnellstmöglich zum Goldschatz zu gelangen.</html>";
 				case SABOTEUR:
 					return "<html>Du bist Saboteur.<br>Du willst auf keinen Fall, dass der Goldschatz aufgedeckt wird.</html>";
