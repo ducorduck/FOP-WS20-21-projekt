@@ -1,6 +1,7 @@
 package fop.model;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import fop.model.cards.*;
@@ -26,7 +27,7 @@ public class Player {
 	
 	/** Die Aktionskarten, die vor dem Spieler liegen. */
 	protected List<ActionCard> actionCards;
-	
+
 	/**
 	 * Erstellt einen neuen Spieler mit dem übergebenen Namen und der übergebenen Rolle.
 	 * @param name der Name des Spielers
@@ -95,6 +96,7 @@ public class Player {
 	 */
 	public void playCard(Card card) throws IllegalArgumentException {
 		if (!handCards.remove(card)) throw new IllegalArgumentException("The player cannot play the given card.");
+
 	}
 	
 	
@@ -157,6 +159,16 @@ public class Player {
 		if (!actionCards.contains(brokenToolCard)) return false;
 		return fixedToolCard.canFix(brokenToolCard.getToolType());
 	}
+
+	public boolean canBeFixedBy(FixedToolCard card) {
+		for (ActionCard actioncard : actionCards) {
+			if (!actioncard.isBrokenTool()) continue;
+			if (canBrokenToolBeFixed((BrokenToolCard)actioncard, card)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	/**
 	 * Repariert eine Karte mit einem zerbrochenen Werkzeug, die vor diesem Spieler liegt.
@@ -168,6 +180,17 @@ public class Player {
 		if (!canBrokenToolBeFixed(brokenToolCard, fixedToolCard))
 			throw new IllegalArgumentException("The broken tool card cannot be fixed by the given fixed tool card.");
 		actionCards.remove(brokenToolCard);
+	}
+
+	public LinkedList<BrokenToolCard> getAllBrokenToolCards (FixedToolCard fixedToolCard) {
+		LinkedList<BrokenToolCard> brokenToolCards = new LinkedList<BrokenToolCard> ();
+		for (ActionCard actioncard : actionCards) {
+			if (!actioncard.isBrokenTool()) continue;
+			if (canBrokenToolBeFixed((BrokenToolCard)actioncard, fixedToolCard)) {
+				brokenToolCards.add((BrokenToolCard)actioncard);
+			}
+		}
+		return brokenToolCards;
 	}
 	
 	
@@ -189,7 +212,7 @@ public class Player {
 	 * Alle möglichen Rollen für Spieler.
 	 */
 	public enum Role {
-		GOLD_MINER, SABOTEUR;
+		RED_GOLD_MINER, SABOTEUR, BLUE_GOLD_MINER;
 	}
 	
 }

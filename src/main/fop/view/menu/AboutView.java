@@ -23,7 +23,7 @@ public class AboutView extends MenuView {
 			.append("FOP-Projekt WiSe 20/21")
 			.append("<p>Hauptautor: Dominik Beese</p>")
 			.append("<p>")
-			.append("Font made by <a href=\"https://www.dafont.com/de/cat-franken-deutsch.font\">Peter Wiegel</a>")
+			.append("Font made by <a href=\"https://www.dafont.com/de/dimbo.font\">Jayvee D. Enaguas</a>")
 			.append("<br>Icons made by <a href=\"https://www.flaticon.com/authors/freepik\" title=\"Freepik\">Freepik</a>, <a href=\"https://www.flaticon.com/authors/dinosoftlabs\" title=\"DinosoftLabs\">DinosoftLabs</a>, <a href=\"https://www.flaticon.com/authors/creaticca-creative-agency\" title=\"Creaticca Creative Agency\">Creaticca Creative Agency</a>, <a href=\"https://www.flaticon.com/authors/those-icons\" title=\"Those Icons\">Those Icons</a>, <a href=\"https://www.flaticon.com/authors/smashicons\" title=\"Smashicons\">Smashicons</a> and <a href=\"https://www.flaticon.com/authors/kiranshastry\" title=\"Kiranshastry\">Kiranshastry</a> from <a href=\"https://www.flaticon.com/\" title=\"Flaticon\">www.flaticon.com</a>")
 			.append("</p>")
 			.append("<p style=\"font-size: 0.85em; font-style: italic;\">Keine Haftung für Bugs, Systemabstürze, Datenverlust und rauchende Grafikkarten.</p>")

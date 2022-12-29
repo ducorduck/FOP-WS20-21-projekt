@@ -27,7 +27,7 @@ public final class NewGameView extends MenuView {
 	private List<JLabel> idList;
 	private List<JTextField> nameList;
 	private List<JToggleButton> computerList;
-	
+
 	public NewGameView(MainFrame window) {
 		super(window, "Neues Spiel");
 	}
@@ -86,7 +86,7 @@ public final class NewGameView extends MenuView {
 		
 		addRow();
 		nameList.get(1).setText("Spieler 2");
-		// computerList.get(1).setSelected(true); // default second player to computer
+		computerList.get(1).setSelected(true); // default second player to computer
 		
 		updateRows();
 	}

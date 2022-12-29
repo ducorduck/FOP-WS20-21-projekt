@@ -4,9 +4,11 @@ import static fop.model.cards.CardAnchor.bottom;
 import static fop.model.cards.CardAnchor.left;
 import static fop.model.cards.CardAnchor.right;
 import static fop.model.cards.CardAnchor.top;
+import static fop.model.TeamColor.*;
 
 import java.util.List;
 
+import fop.model.TeamColor;
 import fop.model.graph.Graph;
 
 /**
@@ -16,12 +18,20 @@ import fop.model.graph.Graph;
  */
 public final class StartCard extends PathCard {
 	
-	public StartCard(Graph<CardAnchor> graph) {
-		super("start", graph);
+	private final TeamColor color;
+
+	public StartCard(Graph<CardAnchor> graph, TeamColor color) {
+		super(color == RED ? "start_red" : "start_blue", graph);
+		this.color = color;
 	}
 	
-	public StartCard() {
-		super("start", List.of(List.of(left, bottom, right, top)));
+	public StartCard(TeamColor color) {
+		super(color == RED ? "start_red" : "start_blue", List.of(List.of(left, bottom, right, top)));
+		this.color = color;
+	}
+
+	public TeamColor getColor() {
+		return color;
 	}
 	
 	/**

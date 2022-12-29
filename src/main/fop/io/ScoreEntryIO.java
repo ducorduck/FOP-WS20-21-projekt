@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +64,11 @@ public final class ScoreEntryIO {
 		//return the completed list of score entries
 		return result;
 	}
+	
+	public static void clearHighScore() {
+		writeScoreEntries(new ArrayList <ScoreEntry>());
+	}
+
 	
 	/**
 	 * Schreibt eine Liste von {@link ScoreEntry} Objekten in die Datei {@value #PATH}.<br>

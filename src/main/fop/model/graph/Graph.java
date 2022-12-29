@@ -251,6 +251,12 @@ public class Graph<V> {
 		return edges;
 	}
 	
+	public boolean hasNoEdgeVertices () {
+		for (Set<V> edge : G.values()) {
+			if (edge.equals(new HashSet<>())) return true;
+		}
+		return false;
+	}
 	
 	// Visualization //
 	
